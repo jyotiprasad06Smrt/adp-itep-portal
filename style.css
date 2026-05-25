@@ -1,0 +1,785 @@
+body {
+  background-color: rgb(228, 188, 109);
+  color: black;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100vw;
+  height: 100vh;
+}
+
+
+
+
+td, th {
+  text-align: center;
+  vertical-align: middle;
+  padding: 12px;
+}
+
+.input-error-border {
+  border-color: red !important;
+  box-shadow: 0 0 0 4px rgba(255, 0, 0, 0.15) !important;
+}
+
+#sem-error-msg {
+  color: red;
+  font-size: 13px;
+  display: none;
+  margin: 5px 0 0 0;
+  text-align: left;
+  font-weight: bold;
+}
+
+/* --- Global Hidden View States --- */
+.hidden1, .hidden2, .hidden3, .hidden4, .hidden5, .hidden6, .hidden7, .hidden8, .hidden9, .hidden10 {
+  display: none !important;
+}
+
+/* --- Interactive Elements Priority Fix --- */
+.special, .start, .back-button, .reg-primary-btn, .reg-secondary-btn, .reg-action-btn, .view-btn {
+  position: relative !important;
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.special {
+  background-color: white;
+  border: 1px solid green;
+  padding: 16px;
+  margin: 0;
+  border-radius: 4px;
+  color: black;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.view-btn {
+  background-color: white;
+  padding: 8px 16px;
+  margin: 0;
+  border-radius: 6px;
+  color: black;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* --- Structural Background Wrappers --- */
+.img-container {
+  position: relative;
+  width: 100vw;       
+  height: 100vh;      
+  overflow: hidden; 
+  box-sizing: border-box;
+}
+
+.img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  
+  display: block;
+}
+
+/* --- CRITICAL FIX: The Layout Overlay Engine --- */
+.text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;       
+  padding: 20px;
+  pointer-events: none; /* Let clicks pass down to actual interactable assets safely */
+  background: linear-gradient(
+    to top, 
+    rgba(0, 0, 0, 0.75) 0%, 
+    rgba(0, 0, 0, 0.4) 60%, 
+    rgba(0, 0, 0, 0.1) 100__
+  );
+}
+
+
+
+
+.text-overlay2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;       
+  padding: 20px;
+  pointer-events: none; /* Let clicks pass down to actual interactable assets safely */
+  background: linear-gradient(
+    to top, 
+    rgba(0, 0, 0, 0.75) 0%, 
+    rgba(0, 0, 0, 0.4) 40%, 
+    rgba(0, 0, 0, 0.1) 90%
+  );
+}
+
+
+
+
+
+/* Re-enable internal text element selections if necessary */
+.text-overlay h1, .text-overlay h4, .text-overlay div, .text-overlay table, .text-overlay form {
+  pointer-events: auto;
+}
+
+.start {
+  color: black;
+  background-color: white;
+  border: none;
+  padding: 12px 24px;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-top: 30px; 
+}
+
+.heading1 {
+  text-align: center;
+  color: white;
+  margin: 0 0 10px 0;
+}
+
+.sub-heading1 {
+  text-align: center;
+  color: white;
+  margin: 6px 0;
+  max-width: 800px;
+}
+
+.heading2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center; 
+  align-items: center;     
+  gap: 15px;               
+  flex-wrap: wrap;         
+  margin-top: 25px;        
+  width: 100%;
+}
+
+/* --- Data Displays --- */
+.table-background {
+  background-color: white;
+  color: black;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); 
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+}
+
+.logo {
+  position: absolute;
+  height: auto;
+  top: 20px;
+  right: 20px;
+  width: 90px;
+  z-index: 9999;
+}
+.back-button {
+  position: fixed !important; /* Changed from absolute to fixed */
+  top: 20px !important;
+  left: 20px !important;
+  
+  /* CRITICAL: A z-index of 9999999 forces it to the absolute top layer,
+     breaking it past the background image and text overlays */
+  z-index: 9999999 !important; 
+  
+  /* Aesthetics to make it stand out clearly */
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border: 2px solid #1e293b !important; /* Darker border for higher visibility */
+  padding: 10px 20px !important;
+  border-radius: 6px !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+  pointer-events: auto !important;
+}
+.reg-card-title{
+  color: white;
+}
+.reg-card-subtitle{
+  color: white;
+}
+/* Hover state */
+.back-button:hover {
+  background-color: #f1f5f9 !important;
+  transform: scale(1.05) !important;
+}
+/* --- Admin Dashboard Layouts --- */
+.dashboard-viewport-adjust {
+  padding-top: 80px !important; 
+  justify-content: flex-start !important; 
+}
+
+.dashboard-main-title {
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.dashboard-flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  width: 90%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.dashboard-column-card {
+  background-color: rgba(255, 255, 255, 0.96);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 30px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.left-panel { flex: 1.2; min-height: 400px; }
+.right-panel { flex: 1; max-width: 520px; }
+
+.approval-table-scroll-wrapper {
+  max-height: 450px; 
+  overflow-y: auto;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.approval-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: sans-serif;
+  font-size: 14px;
+}
+
+.approval-data-table th {
+  padding: 8px;
+  border-bottom: 2px solid #cbd5e1;
+  background-color: #f4f6f9;
+  color: #475569;
+}
+
+#admin-login-form, #upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#admin-login-form input, #upload-form input, #upload-form select {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #fafafa;
+  color: #333;
+}
+
+.form-row { display: flex; gap: 15px; }
+.file-box {
+  background-color: #f4f6f9;
+  padding: 18px;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+  text-align: left;
+}
+
+/* --- Admin Registration Subsystem Additions --- */
+.admin-register-viewport {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+.register-viewport-adjust {
+  padding-top: 50px !important;
+  justify-content: center !important;
+}
+
+.professional-reg-card {
+  background-color: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  width: 100% !important;
+  max-width: 520px !important;
+  padding: 35px;
+  box-sizing: border-box;
+}
+
+.reg-card-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 6px;}
+.reg-card-subtitle { font-size: 18px; text-align: center; margin-bottom: 25px; }
+.step-indicator { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #2b7a78; margin-bottom: 15px; }
+
+.form-group-row { display: flex; gap: 16px; margin-bottom: 18px; width: 100%; }
+.input-field-wrap { flex: 1; display: flex; flex-direction: column; text-align: left; }
+.input-field-wrap-short { width: 120px; display: flex; flex-direction: column; text-align: left; }
+.input-field-wrap-long { flex: 1; display: flex; flex-direction: column; text-align: left; }
+
+.professional-reg-card label { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.professional-reg-card input {
+  padding: 12px 14px !important;
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.reg-primary-btn {
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-weight: 600;
+  width: 100%;
+}
+.reg-secondary-btn {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 14px 20px;
+  font-weight: 600;
+}
+.form-action-row { display: flex; justify-content: space-between; gap: 15px; }
+.inline-verification { align-items: flex-end; }
+.reg-action-btn {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #2b7a78;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  height: 43px;
+}
+
+.success-green { background-color: #10b981 !important; }
+.blue-accent { background-color: #3b82f6 !important; }
+.success-alignment { display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+.success-checkmark-icon {
+  font-size: 48px;
+  color: #10b981;
+  background-color: #ecfdf5;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 992px) {
+  .dashboard-flex-container { flex-direction: column; align-items: center; }
+  .left-panel, .right-panel { width: 100%; }
+}
+
+
+
+/* ========================================================
+   Anonymous Contribution Page & Form Layout Styles
+   ======================================================== */
+.contrib-card-wrapper {
+  width: 100% !important;
+  max-width: 520px !important; /* Prevents stretching on desktop */
+  box-sizing: border-box;
+
+
+
+
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+#anonymous-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#anonymous-upload-form select,
+#anonymous-upload-form input[type="text"],
+#anonymous-upload-form input[type="number"] {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #f8fafc;
+  color: #333;
+}
+
+#anonymous-upload-form select:disabled {
+  background-color: #e2e8f0;
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+
+.submit-contrib-btn {
+  width: 100%;
+  font-weight: bold;
+}
+
+/* ========================================================
+   Admin Dashboard Paper Moderation Dynamic Cards
+   ======================================================== */
+.paper-moderation-card {
+  flex: 1.2;
+  min-height: 400px;
+}
+
+.contrib-moderation-item {
+  border: 1px solid #cbd5e1;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  text-align: left;
+}
+
+.contrib-moderation-item h4 {
+  margin: 0 0 5px 0;
+  color: #1e293b;
+  font-family: sans-serif;
+}
+
+.contrib-moderation-item p {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #475569;
+  font-family: sans-serif;
+}
+
+.moderation-btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.moderation-btn-group .view-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Specific Modifiers for Action Row States */
+.btn-review { background-color: #3b82f6 !important; }
+.btn-approve { background-color: #28a745 !important; }
+.btn-reject { background-color: #dc3545 !important; }
+
+
+
+/* ========================================================
+   Admin Dashboard Paper Moderation Card Layout Components
+   ======================================================== */
+.paper-card {
+  border: 1px solid #cbd5e1 !important;
+  padding: 15px !important;
+  margin-bottom: 12px !important;
+  border-radius: 8px !important;
+  background-color: #f8fafc !important;
+  text-align: left !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+}
+
+.paper-card h4 {
+  margin: 0 0 5px 0 !important;
+  color: #1e293b !important;
+  font-family: sans-serif !important;
+  font-size: 16px !important;
+}
+
+.paper-card p {
+  margin: 0 0 12px 0 !important;
+  font-size: 13px !important;
+  color: #475569 !important;
+  font-family: sans-serif !important;
+}
+
+.paper-card div {
+  display: flex !important;
+  gap: 10px !important;
+}
+
+.paper-card button {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+/* Color codes logic for moderation button actions */
+.paper-card button:nth-child(1) { background-color: #3b82f6 !important; } /* Review (Blue) */
+.paper-card button:nth-child(2) { background-color: #28a745 !important; } /* Publish (Green) */
+.paper-card button:nth-child(3) { background-color: #dc3545 !important; } /* Drop (Red) */
+
+
+
+
+
+
+
+
+/* Ensure background images are fluid across all viewport shapes */
+img[src="studyroom.png"] {
+  width: 100% !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+}
+
+/* Fix mobile alignment, allow long forms to scroll vertically */
+@media (max-width: 768px) {
+  .text-overlay, .text-overlay2 {
+    justify-content: flex-start !important;
+    padding-top: 90px !important; /* Clears room for your fixed back button */
+    overflow-y: auto !important;
+    pointer-events: auto !important;
+  }
+
+  .button-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .special {
+    width: 90% !important;
+    padding: 14px !important;
+  }
+
+  .form-group-row, .form-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .input-field-wrap-short {
+    width: 100% !important;
+  }
+
+  .dashboard-flex-container {
+    width: 95% !important;
+    padding-bottom: 40px !important;
+  }
+}
+
+
+
+/* Custom Responsive Adaptations Engine */
+@media (max-width: 768px) {
+  /* Force hardcoded 1540px images to resize dynamically to the device screen width */
+  img[width="1540"] {
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+  }
+
+  .dashboard-flex-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 95% !important;
+  }
+
+  .left-panel, .right-panel, .paper-moderation-card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .button-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .special {
+    width: 90% !important;
+    padding: 14px !important;
+  }
+
+  .form-row, .form-group-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .text-overlay, .text-overlay2 {
+    justify-content: flex-start !important;
+    padding-top: 90px !important; /* Prevents overlap with your fixed back buttons */
+    overflow-y: auto !important;
+    pointer-events: auto !important;
+  }
+}
+
+
+
+
+
+
+/* --- Premium, Symmetrical Dual Developer Profiles Configuration --- */
+.developer-profile {
+  position: absolute !important;
+  bottom: 20px !important;  /* Locks both badges neatly above the bottom screen boundaries */
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.55); /* Translucent dark glassmorphism tint */
+  padding: 10px 18px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto; /* Keeps email selections and social badges interactive */
+  
+  width: auto !important;
+  max-width: 380px !important; 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.developer-profile:hover {
+  transform: translateY(-3px);
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Clean Positional Anchor Targets --- */
+.dev-left {
+  left: 25px !important;
+  right: auto !important; /* Pins Jyoti cleanly into the bottom-left corner */
+}
+
+.dev-right {
+  right: 25px !important;  
+  left: auto !important;  /* Pins Priya cleanly into the bottom-right corner */
+}
+
+.developer-photo {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.developer-info {
+  text-align: left;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #ffffff;
+}
+
+.dev-by {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.dev-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 1px 0;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.dev-college {
+  font-size: 11px;
+  margin: 0 0 4px 0;
+  color: #cbd5e1;
+}
+
+.dev-email {
+  font-size: 11px;
+  margin: 0 0 6px 0;
+  color: #94a3b8;
+}
+
+.dev-socials {
+  display: flex;
+  gap: 8px;
+}
+
+.social-link {
+  font-size: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.insta {
+  background-color: rgba(225, 48, 108, 0.15);
+  color: #ff7ebb;
+  border: 1px solid rgba(225, 48, 108, 0.25);
+}
+.insta:hover {
+  background-color: #e1306c;
+  color: white;
+}
+
+.linkedin {
+  background-color: rgba(0, 119, 181, 0.15);
+  color: #64b5ff;
+  border: 1px solid rgba(0, 119, 181, 0.25);
+}
+.linkedin:hover {
+  background-color: #0077b5;
+  color: white;
+}
+
+/* ========================================================
+   INTELLIGENT MOBILE FLOW ADAPTATION
+   ======================================================== */
+@media (max-width: 868px) {
+  .developer-profile {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    margin: 20px auto 0 auto !important; /* Stacks nicely on phones */
+    width: 85% !important;
+    max-width: 340px !important;
+  }
+}
