@@ -170,6 +170,30 @@ async function openDynamicRepositoryView(categoryType = "Major") {
         for (const code in groupedData) {
             const row = groupedData[code];
             const tr = document.createElement('tr');
+
+
+
+            const sessionalLink = row.sessional ? `
+                <button class="view-btn" onclick="window.open('${row.sessional.startsWith('http') ? row.sessional : BACKEND_URL + row.sessional}', '_blank')">View</button>
+                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${code}', 'sessional')">[Delete File]</span></div>
+            ` : `<span style="color:gray;">N/A</span>`;
+
+            const endsemLink = row.endsem ? `
+                <button class="view-btn" onclick="window.open('${row.endsem}', '_blank')">View</button>
+                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${code}', 'endsem')">[Delete File]</span></div>
+            ` : `<span style="color:gray;">N/A</span>`;
+
+            tr.innerHTML = `
+                <td>${count++}</td>
+                <td>${currentViewState.year}</td>
+                <td>${row.name}</td>
+                <td>${code}</td>
+                <td>${row.sem}</td>
+                <td>${sessionalLink}</td>
+                <td>${endsemLink}</td>
+            `;
+            tableBody.appendChild(tr);
+        }
             
 
             const sessionalLink = row.sessional ? `<button class="view-btn" onclick="window.open('${row.sessional.startsWith('http') ? row.sessional : BACKEND_URL + row.sessional}', '_blank')">View</button>` : `<span style="color:gray;">N/A</span>`;
@@ -745,3 +769,38 @@ window.processPaper = function(paperId, actionDirective) {
     })
     .catch(err => alert("Could not reach backend processing server pipeline."));
 }
+
+
+// --- 📌 ADMIN LIVE PAPER REMOVAL PIPELINE ---
+window.deleteLivePaper = async function(paperCode, paperType) {
+    // Basic password prompt barrier to keep students from deleting files
+    const passcode = prompt("ADMIN ACTION:\nPlease enter your Admin Password to delete this file:");
+    if (!passcode) return;
+    
+    // Validates directly against your profile credentials
+    if (passcode !== "jp2006" && passcode !== "Priyaranjan7") {
+        alert("Incorrect administrative password.");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to permanently delete paper code "${paperCode}"?`)) return;
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/delete-paper`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: paperCode, type: paperType })
+        });
+        
+        const data = await response.json();
+        alert(data.message);
+        
+        // Instantly re-query the database to update the table grid cleanly
+        const currentTitle = document.getElementById('dynamic-page-title').textContent;
+        const categoryType = currentTitle.includes("Minor") ? "Minor" : "Major";
+        openDynamicRepositoryView(categoryType);
+        
+    } catch (err) {
+        alert("Error sending request payload to background servers.");
+    }
+};
