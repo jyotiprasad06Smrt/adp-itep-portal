@@ -1,15 +1,12 @@
-// Replace the URL below with your actual Render URL after finishing Part 2!
 const BACKEND_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
     ? "http://127.0.0.1:5000"
     : ""https://adp-itep-portal.onrender.com";
-// --- State Management for Dynamic Repository ---
 let currentViewState = {
     stream: 'bsc-bed',
     dept: '',
     year: '2025-26' // Synchronized automatically via the admin selection menu
 };
 
-// Helper utility to safely bind event listeners cleanly
 function safeBindClick(id, callback) {
     const el = document.getElementById(id);
     if (el) {
@@ -17,7 +14,6 @@ function safeBindClick(id, callback) {
     }
 }
 
-// Global helper function to cleanly switch between views without stacking classes
 function deactivateAllViews() {
     const screens = [
         { id: 'before-start', cls: 'hidden2' },
@@ -43,7 +39,6 @@ function deactivateAllViews() {
     });
 }
 
-// --- Standard Click Event Routing Rules ---
 safeBindClick('start', function(){
     deactivateAllViews();
     document.getElementById('login-interface').classList.remove('hidden2');
@@ -60,13 +55,11 @@ safeBindClick('bck2', function(){
 });
 
 
-// --- FIXED: Opens the hidden anonymous contribution view ---
 safeBindClick('contribute-btn', function() {
     deactivateAllViews();
     document.getElementById('anonymous-contribute-page').classList.remove('hidden2');
 });
 
-// --- FIXED: Handles back routing button out of contribution menu ---
 safeBindClick('bck-contribute', function() {
     deactivateAllViews();
     document.getElementById('login-interface').classList.remove('hidden2');
@@ -112,14 +105,12 @@ safeBindClick('select-all-paper-btn', function() {
     document.getElementById('ba-bed-minor').classList.remove('hidden10');
 });
 
-// --- Intercept Student Subject Category Choices (Minor) ---
 safeBindClick('mat-m-btn', function() { currentViewState.dept = 'mathematics'; openDynamicRepositoryView("Minor"); });
 safeBindClick('phy-m-btn', function() { currentViewState.dept = 'physics'; openDynamicRepositoryView("Minor"); });
 safeBindClick('che-m-btn', function() { currentViewState.dept = 'chemistry'; openDynamicRepositoryView("Minor"); });
 safeBindClick('bot-m-btn', function() { currentViewState.dept = 'botany'; openDynamicRepositoryView("Minor"); });
 safeBindClick('zoo-m-btn', function() { currentViewState.dept = 'zoology'; openDynamicRepositoryView("Minor"); });
 
-// --- B.A.-B.Ed. Minor Department Click Listeners ---
 safeBindClick('his-m-btn', function() { currentViewState.dept = 'history'; openDynamicRepositoryView("Minor"); });
 safeBindClick('geo-m-btn', function() { currentViewState.dept = 'geography'; openDynamicRepositoryView("Minor"); });
 safeBindClick('pol-m-btn', function() { currentViewState.dept = 'political-science'; openDynamicRepositoryView("Minor"); });
@@ -128,14 +119,12 @@ safeBindClick('eng-m-btn', function() { currentViewState.dept = 'english'; openD
 safeBindClick('asm-m-btn', function() { currentViewState.dept = 'assamese'; openDynamicRepositoryView("Minor"); });
 safeBindClick('hin-m-btn', function() { currentViewState.dept = 'hindi'; openDynamicRepositoryView("Minor"); });
 
-// Major routing hooks for B.Sc elements
 safeBindClick('phy-btn', function(){ currentViewState.dept = 'physics'; openDynamicRepositoryView("Major"); });
 safeBindClick('che-btn', function(){ currentViewState.dept = 'chemistry'; openDynamicRepositoryView("Major"); });
 safeBindClick('mat-btn', function(){ currentViewState.dept = 'mathematics'; openDynamicRepositoryView("Major"); });
 safeBindClick('zoo-btn', function(){ currentViewState.dept = 'zoology'; openDynamicRepositoryView("Major"); });
 safeBindClick('bot-btn', function(){ currentViewState.dept = 'botany'; openDynamicRepositoryView("Major"); });
 
-// Major routing hooks for B.A. elements
 safeBindClick('his-btn', function(){ currentViewState.dept = 'history'; openDynamicRepositoryView("Major"); });
 safeBindClick('geo-btn', function(){ currentViewState.dept = 'geography'; openDynamicRepositoryView("Major"); });
 safeBindClick('pol-btn', function(){ currentViewState.dept = 'political-science'; openDynamicRepositoryView("Major"); });
@@ -144,7 +133,6 @@ safeBindClick('eng-btn', function(){ currentViewState.dept = 'english'; openDyna
 safeBindClick('asm-btn', function(){ currentViewState.dept = 'assamese'; openDynamicRepositoryView("Major"); });
 safeBindClick('hin-btn', function(){ currentViewState.dept = 'hindi'; openDynamicRepositoryView("Major"); });
 
-// --- Central Engine: Expose Universal Table Template & Request Data ---
 async function openDynamicRepositoryView(categoryType = "Major") {
     deactivateAllViews();
     
@@ -203,7 +191,6 @@ async function openDynamicRepositoryView(categoryType = "Major") {
     }
 }
 
-// Smart Unified Back Button for the Main Table Display Page (Completely Fixed Overlaps)
 safeBindClick('dynamic-back-btn', function() {
     deactivateAllViews();
     
@@ -225,7 +212,6 @@ safeBindClick('dynamic-back-btn', function() {
     }
 });
 
-// Component Back Buttons
 safeBindClick('bck3', function(){
     deactivateAllViews();
     document.getElementById('main-website').classList.remove('hidden3');
@@ -256,7 +242,6 @@ safeBindClick('bck-ba-minor', function() {
     document.getElementById('ba-bed-page').classList.remove('hidden4');
 });
 
-// --- Admin System Account Registration & Authorization Actions ---
 safeBindClick('admin-register-btn', function() {
     deactivateAllViews();
     document.getElementById('admin-register').style.display = 'block';
@@ -293,7 +278,6 @@ safeBindClick('bck9', function(){
     document.getElementById('login-interface').classList.remove('hidden2');
 });
 
-// Admin Form Submission Handling Engine
 const loginForm = document.getElementById('admin-login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -334,7 +318,6 @@ if (loginForm) {
     });
 }
 
-// --- Dynamic Registration Workflows ---
 safeBindClick('reg-next-btn', function() {
     if (!document.getElementById('reg-name').value || !document.getElementById('reg-college').value) {
         alert("Please complete all profile fields before continuing.");
@@ -446,7 +429,6 @@ if (regForm) {
 }
 
 
-// --- Dynamic Stream to Department Form Dropdowns Mapping ---
 const streamSelect = document.getElementById('paper-stream');
 const deptSelect = document.getElementById('paper-dept');
 const departmentsByStream = {
@@ -563,7 +545,6 @@ if (uploadForm) {
     });
 }
 
-// --- Peer Approval Pipeline Engine Operations ---
 async function loadPendingAdminsQueue() {
     const tbody = document.getElementById('pending-admins-tbody');
     if (!tbody) return;
@@ -625,7 +606,6 @@ window.processAdminApproval = async function(usernameToApprove) {
 
 
 
-// Form Submission interceptor for Anonymous Contributors
 const anonForm = document.getElementById('anonymous-upload-form');
 if (anonForm) {
     anonForm.addEventListener('submit', async function(e) {
@@ -634,7 +614,7 @@ if (anonForm) {
         const semValue = document.getElementById('contrib-sem').value;
         
         // Strict runtime evaluation guard check
-        if (semValue < 1 || semValue > 8 || !Number.isInteger(Number(semValue)) || semValue.includes('.')) {
+        if (semValue<1||semValue>8||!Number.isInteger(Number(semValue))||semValue.includes('.')){
             alert("Cannot submit: Please enter a valid whole semester integer between 1 and 8.");
             return;
         }
@@ -672,7 +652,6 @@ if (anonForm) {
 
 
 
-// --- Strict Integer Validation (1-8) for Anonymous Semester Input ---
 const contribSemInput = document.getElementById('contrib-sem');
 
 if (contribSemInput) {
@@ -699,7 +678,6 @@ if (contribSemInput) {
 
 
 
-// --- Dynamic Stream to Department Mapping for Anonymous Contributor Form ---
 const contribStreamSelect = document.getElementById('contrib-stream');
 const contribDeptSelect = document.getElementById('contrib-dept');
 
@@ -707,10 +685,8 @@ if (contribStreamSelect && contribDeptSelect) {
     contribStreamSelect.addEventListener('change', function() {
         const selectedStream = this.value;
         
-        // Reset the department dropdown to a clean starting state
         contribDeptSelect.innerHTML = '<option value="" disabled selected>Select Department</option>';
         
-        // We reuse your existing departmentsByStream configuration mapping dictionary!
         if (departmentsByStream[selectedStream]) {
             contribDeptSelect.disabled = false;
             
@@ -727,7 +703,6 @@ if (contribStreamSelect && contribDeptSelect) {
 }
 
 
-// --- FIXED: Exposed to global window scope so dynamic elements can access moderation pipelines ---
 window.loadPendingPapers = function() {
     fetch(`${BACKEND_URL}/api/get-pending-papers`)
     .then(res => res.json())
