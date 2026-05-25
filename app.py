@@ -436,33 +436,45 @@ def upload_paper():
 
 
 
-
-# --- 📌 QUICK REPOSITORY DELETION ENDPOINT ---
+# --- 📌 ADMIN DIRECT PERMANENT REPOSITORY DELETION ENDPOINT ---
 @app.route('/api/delete-paper', methods=['POST'])
 def delete_paper():
     data = request.get_json()
-    paper_code = data.get('code')
-    paper_type = data.get('type')  # Expects 'sessional' or 'endsem'
+    paper_id = data.get('id')  # Now looks up the unique database row item ID
     
-    if not paper_code or not paper_type:
-        return jsonify({"success": False, "message": "Missing deletion parameters."}), 400
+    if not paper_id:
+        return jsonify({"success": False, "message": "Missing targeted entry identifier."}), 400
 
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        # Locate the precise tracking row to get its specific cloud file URL
+        cursor.execute("SELECT fileUrl FROM papers WHERE id = ?", (paper_id,))
+        row = cursor.fetchone()
         
-        # 1. Verify the record exists before removing it
-        cursor.execute("SELECT 1 FROM papers WHERE code = ? AND type = ?", (paper_code, paper_type))
-        if not cursor.fetchone():
-            return jsonify({"success": False, "message": "Paper record not found."}), 404
+        if not row:
+            return jsonify({"success": False, "message": "Paper record not found in database."}), 404
+            
+        file_url = row['fileUrl']
 
-        # 2. Delete tracking row from the live public database table
-        cursor.execute("DELETE FROM papers WHERE code = ? AND type = ?", (paper_code, paper_type))
+        # --- ☁️ Cloudinary Asset Footprint Eraser Subsystem ---
+        try:
+            url_parts = file_url.split('/')
+            if 'itep_papers' in url_parts:
+                folder_index = url_parts.index('itep_papers')
+                public_id = '/'.join(url_parts[folder_index:])
+                import cloudinary.uploader
+                cloudinary.uploader.destroy(public_id, resource_type="raw")
+        except Exception as cloud_err:
+            print(f"⚠️ Cloud storage deletion note: {str(cloud_err)}")
+
+        # --- 📊 SQL Database Record Purge Engine ---
+        cursor.execute("DELETE FROM papers WHERE id = ?", (paper_id,))
         conn.commit()
         
-        return jsonify({"success": True, "message": "Paper successfully removed from the main website!"}), 200
+        return jsonify({"success": True, "message": "Paper vanished permanently from website and cloud storage!"}), 200
         
     except Exception as e:
-        return jsonify({"success": False, "message": f"Database error: {str(e)}"}), 500
+        return jsonify({"success": False, "message": f"Database transaction error: {str(e)}"}), 500
     finally:
         conn.close()
