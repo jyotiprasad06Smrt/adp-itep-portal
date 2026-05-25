@@ -54,7 +54,6 @@ safeBindClick('bck2', function(){
     document.getElementById('login-interface').classList.remove('hidden2');
 });
 
-
 safeBindClick('contribute-btn', function() {
     deactivateAllViews();
     document.getElementById('anonymous-contribute-page').classList.remove('hidden2');
@@ -64,9 +63,6 @@ safeBindClick('bck-contribute', function() {
     deactivateAllViews();
     document.getElementById('login-interface').classList.remove('hidden2');
 });
-
-
-
 
 safeBindClick('main-website-btn', function() {
     deactivateAllViews();
@@ -171,33 +167,15 @@ async function openDynamicRepositoryView(categoryType = "Major") {
             const row = groupedData[code];
             const tr = document.createElement('tr');
 
-
-
             const sessionalLink = row.sessional ? `
                 <button class="view-btn" onclick="window.open('${row.sessional.startsWith('http') ? row.sessional : BACKEND_URL + row.sessional}', '_blank')">View</button>
                 <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${code}', 'sessional')">[Delete File]</span></div>
             ` : `<span style="color:gray;">N/A</span>`;
 
             const endsemLink = row.endsem ? `
-                <button class="view-btn" onclick="window.open('${row.endsem}', '_blank')">View</button>
+                <button class="view-btn" onclick="window.open('${row.endsem.startsWith('http') ? row.endsem : BACKEND_URL + row.endsem}', '_blank')">View</button>
                 <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${code}', 'endsem')">[Delete File]</span></div>
             ` : `<span style="color:gray;">N/A</span>`;
-
-            tr.innerHTML = `
-                <td>${count++}</td>
-                <td>${currentViewState.year}</td>
-                <td>${row.name}</td>
-                <td>${code}</td>
-                <td>${row.sem}</td>
-                <td>${sessionalLink}</td>
-                <td>${endsemLink}</td>
-            `;
-            tableBody.appendChild(tr);
-        }
-            
-
-            const sessionalLink = row.sessional ? `<button class="view-btn" onclick="window.open('${row.sessional.startsWith('http') ? row.sessional : BACKEND_URL + row.sessional}', '_blank')">View</button>` : `<span style="color:gray;">N/A</span>`;
-            const endsemLink = row.endsem ? `<button class="view-btn" onclick="window.open('${row.endsem}', '_blank')">View</button>` : `<span style="color:gray;">N/A</span>`;
 
             tr.innerHTML = `
                 <td>${count++}</td>
@@ -222,13 +200,11 @@ safeBindClick('dynamic-back-btn', function() {
     const isMinor = currentTitle.includes("Minor");
 
     if (currentViewState.stream === 'bsc-bed') {
-        // Safe Transition: Reveal ONLY the active sub-menu container, preventing text layer bleeds
         const targetMenu = document.getElementById(isMinor ? 'bsc-bed-minor' : 'bsc-bed-select-dept');
         if (targetMenu) {
             targetMenu.classList.remove(isMinor ? 'hidden10' : 'hidden6');
         }
     } else if (currentViewState.stream === 'ba-bed') {
-        // Safe Transition: Reveal ONLY the active sub-menu container, preventing text layer bleeds
         const targetMenu = document.getElementById(isMinor ? 'ba-bed-minor' : 'ba-bed-select-dept');
         if (targetMenu) {
             targetMenu.classList.remove(isMinor ? 'hidden10' : 'hidden6');
@@ -452,7 +428,6 @@ if (regForm) {
     });
 }
 
-
 const streamSelect = document.getElementById('paper-stream');
 const deptSelect = document.getElementById('paper-dept');
 const departmentsByStream = {
@@ -621,15 +596,6 @@ window.processAdminApproval = async function(usernameToApprove) {
     }
 };
 
-
-
-
-
-
-
-
-
-
 const anonForm = document.getElementById('anonymous-upload-form');
 if (anonForm) {
     anonForm.addEventListener('submit', async function(e) {
@@ -637,8 +603,7 @@ if (anonForm) {
         
         const semValue = document.getElementById('contrib-sem').value;
         
-        // Strict runtime evaluation guard check
-        if (semValue<1||semValue>8||!Number.isInteger(Number(semValue))||semValue.includes('.')){
+        if (semValue < 1 || semValue > 8 || !Number.isInteger(Number(semValue)) || semValue.includes('.')){
             alert("Cannot submit: Please enter a valid whole semester integer between 1 and 8.");
             return;
         }
@@ -662,7 +627,6 @@ if (anonForm) {
             if (response.ok) {
                 alert(data.message);
                 anonForm.reset();
-                // Ensure the dropdown goes back to a clean disabled configuration states default
                 contribDeptSelect.innerHTML = '<option value="" disabled selected>Select Department</option>';
             } else {
                 alert("Submission Refused: " + data.message);
@@ -673,23 +637,14 @@ if (anonForm) {
     });
 }
 
-
-
-
 const contribSemInput = document.getElementById('contrib-sem');
-
 if (contribSemInput) {
     contribSemInput.addEventListener('input', function() {
         const val = this.value;
-        
-        // Check if value is empty, outside 1-8 range, or contains a decimal point
         if (val !== "" && (val < 1 || val > 8 || !Number.isInteger(Number(val)) || val.includes('.'))) {
-            // Forcefully strip out decimal formatting visually if they typed it
             if(val.includes('.')) {
                 this.value = Math.floor(val);
             }
-            
-            // Apply your custom error highlighting style rules
             this.classList.add('input-error-border');
         } else {
             this.classList.remove('input-error-border');
@@ -697,23 +652,14 @@ if (contribSemInput) {
     });
 }
 
-
-
-
-
-
 const contribStreamSelect = document.getElementById('contrib-stream');
 const contribDeptSelect = document.getElementById('contrib-dept');
-
 if (contribStreamSelect && contribDeptSelect) {
     contribStreamSelect.addEventListener('change', function() {
         const selectedStream = this.value;
-        
         contribDeptSelect.innerHTML = '<option value="" disabled selected>Select Department</option>';
-        
         if (departmentsByStream[selectedStream]) {
             contribDeptSelect.disabled = false;
-            
             departmentsByStream[selectedStream].forEach(dept => {
                 const option = document.createElement('option');
                 option.value = dept.value;
@@ -726,14 +672,13 @@ if (contribStreamSelect && contribDeptSelect) {
     });
 }
 
-
 window.loadPendingPapers = function() {
     fetch(`${BACKEND_URL}/api/get-pending-papers`)
     .then(res => res.json())
     .then(papers => {
         const container = document.getElementById('pending-papers-container');
         if (!container) return;
-        container.innerHTML = ''; // Clear previous views
+        container.innerHTML = ''; 
 
         if (papers.length === 0) {
             container.innerHTML = '<p class="empty-queue-row" style="text-align:center; padding:20px; color:#64748b; font-family:sans-serif;">No pending paper requests matching queue parameters.</p>';
@@ -765,19 +710,15 @@ window.processPaper = function(paperId, actionDirective) {
     .then(res => res.json())
     .then(data => {
         alert(data.message);
-        window.loadPendingPapers(); // Reload the UI layout queue lists automatically
+        window.loadPendingPapers(); 
     })
     .catch(err => alert("Could not reach backend processing server pipeline."));
 }
 
-
-// --- 📌 ADMIN LIVE PAPER REMOVAL PIPELINE ---
 window.deleteLivePaper = async function(paperCode, paperType) {
-    // Basic password prompt barrier to keep students from deleting files
     const passcode = prompt("ADMIN ACTION:\nPlease enter your Admin Password to delete this file:");
     if (!passcode) return;
     
-    // Validates directly against your profile credentials
     if (passcode !== "jp2006" && passcode !== "Priyaranjan7") {
         alert("Incorrect administrative password.");
         return;
@@ -795,7 +736,6 @@ window.deleteLivePaper = async function(paperCode, paperType) {
         const data = await response.json();
         alert(data.message);
         
-        // Instantly re-query the database to update the table grid cleanly
         const currentTitle = document.getElementById('dynamic-page-title').textContent;
         const categoryType = currentTitle.includes("Minor") ? "Minor" : "Major";
         openDynamicRepositoryView(categoryType);
