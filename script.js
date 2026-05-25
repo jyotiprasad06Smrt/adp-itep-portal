@@ -153,41 +153,38 @@ async function openDynamicRepositoryView(categoryType = "Major") {
             return;
         }
 
-        const groupedData = {};
-        papers.forEach(item => {
-            if (!groupedData[item.code]) {
-                groupedData[item.code] = { name: item.subject, sem: item.semester, sessional: null, endsem: null };
-            }
-            if (item.type === 'sessional') groupedData[item.code].sessional = item.fileUrl;
-            if (item.type === 'endsem') groupedData[item.code].endsem = item.fileUrl;
-        });
-
+        // --- 📊 NEW: Multi-Paper Table Row Render Subsystem ---
         let count = 1;
-        for (const code in groupedData) {
-            const row = groupedData[code];
+        papers.forEach(item => {
             const tr = document.createElement('tr');
 
-            const sessionalLink = row.sessional ? `
-                <button class="view-btn" onclick="window.open('${row.sessional.startsWith('http') ? row.sessional : BACKEND_URL + row.sessional}', '_blank')">View</button>
-                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${code}', 'sessional')">[Delete File]</span></div>
+            // Determine if this specific row item is sessional or endsem
+            const isSessional = item.type === 'sessional';
+            const url = item.fileUrl.startsWith('http') ? item.fileUrl : BACKEND_URL + item.fileUrl;
+
+            // Generate clean conditional buttons based on the type of paper uploaded
+            const sessionalLink = isSessional ? `
+                <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
+                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${item.code}', 'sessional')">[Delete File]</span></div>
             ` : `<span style="color:gray;">N/A</span>`;
 
-            const endsemLink = row.endsem ? `
-                <button class="view-btn" onclick="window.open('${row.endsem.startsWith('http') ? row.endsem : BACKEND_URL + row.endsem}', '_blank')">View</button>
-                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${code}', 'endsem')">[Delete File]</span></div>
+            const endsemLink = !isSessional ? `
+                <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
+                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${item.code}', 'endsem')">[Delete File]</span></div>
             ` : `<span style="color:gray;">N/A</span>`;
 
             tr.innerHTML = `
                 <td>${count++}</td>
-                <td>${currentViewState.year}</td>
-                <td>${row.name}</td>
-                <td>${code}</td>
-                <td>${row.sem}</td>
+                <td>${item.academicYear}</td>
+                <td>${item.subject}</td>
+                <td>${item.code}</td>
+                <td>${item.semester}</td>
                 <td>${sessionalLink}</td>
                 <td>${endsemLink}</td>
             `;
             tableBody.appendChild(tr);
-        }
+        });
+
     } catch (err) {
         if (tableBody) tableBody.innerHTML = `<tr><td colspan="7" style="color:red;">Error fetching documents from backend server.</td></tr>`;
     }
