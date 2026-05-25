@@ -433,3 +433,36 @@ def upload_paper():
         return jsonify({"success": True, "message": "Paper published to live system successfully!"}), 200
 
     return jsonify({"success": False, "message": "Only PDF documents are permitted."}), 400
+
+
+
+
+# --- 📌 QUICK REPOSITORY DELETION ENDPOINT ---
+@app.route('/api/delete-paper', methods=['POST'])
+def delete_paper():
+    data = request.get_json()
+    paper_code = data.get('code')
+    paper_type = data.get('type')  # Expects 'sessional' or 'endsem'
+    
+    if not paper_code or not paper_type:
+        return jsonify({"success": False, "message": "Missing deletion parameters."}), 400
+
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Verify the record exists before removing it
+        cursor.execute("SELECT 1 FROM papers WHERE code = ? AND type = ?", (paper_code, paper_type))
+        if not cursor.fetchone():
+            return jsonify({"success": False, "message": "Paper record not found."}), 404
+
+        # 2. Delete tracking row from the live public database table
+        cursor.execute("DELETE FROM papers WHERE code = ? AND type = ?", (paper_code, paper_type))
+        conn.commit()
+        
+        return jsonify({"success": True, "message": "Paper successfully removed from the main website!"}), 200
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Database error: {str(e)}"}), 500
+    finally:
+        conn.close()
