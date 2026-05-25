@@ -9,17 +9,24 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash 
+import cloudinary
+import cloudinary.uploader
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# --- Upload Engine Configurations ---
-app.config['UPLOAD_FOLDER'] = './uploaded_papers'
-app.config['MAX_CONTENT_LENGTH'] = 3 * 1024 * 1024  # Strict 3MB file size limit
+# --- Configure Permanent Cloudinary Storage Subsystem ---
+cloudinary.config(
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key = os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET"),
+    secure = True
+)
+
+# --- Engine Database Configuration ---
 DB_FILE = "itep_repository.db"  
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Temporary volatile dictionary tracking OTP storage values
 OTP_STORE = {}        
@@ -79,7 +86,7 @@ def init_db():
                 )
             ''')
 
-            # 4. NEW: Create Anonymous Pending Contributions holding table
+            # 4. Create Anonymous Pending Contributions holding table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS pending_papers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +105,6 @@ def init_db():
             default_admins = [
                 ("jyotiprasad", generate_password_hash("jp2006"), "Jyoti Prasad", "NIT Rourkela", 2029, "bsc-bed", "Physics", "jyotiprasad20062006@gmail.com"),
                 ("priyaranjan2007", generate_password_hash("Priyaranjan7"), "Priyaranjan", "ADP College", 2029, "bsc-bed", "Chemistry", "priyaranjanpradhan15@gmail.com")
-                
             ]
             for username, password, name, college, year, stream, subject, email in default_admins:
                 cursor.execute("SELECT 1 FROM admins WHERE username = ?", (username,))
@@ -130,15 +136,7 @@ def send_real_otp_email(receiver_email, otp_code):
     msg['To'] = receiver_email
     msg['Subject'] = "ADP ITEP Portal - Administrative Registration OTP Verification"
 
-    body = f"""
-Hello,
-
-Thank you for initiating your Admin registration setup for the ADP ITEP Repository portal.
-Verification Code: {otp_code}
-
-Best regards,
-ADP College ITEP Infrastructure System
-    """
+    body = f"Hello,\n\nThank you for initiating your Admin registration setup for the ADP ITEP Repository portal.\nVerification Code: {otp_code}\n\nBest regards,\nADP College ITEP Infrastructure System"
     msg.attach(MIMEText(body, 'plain'))
 
     try:
@@ -223,7 +221,47 @@ def admin_register():
     return jsonify({"success": True, "message": "Account created. Awaiting peer authorization approval."}), 201
 
 
-# --- 📌 NEW CONTRIBUTE PAPER ENDPOINT (For Anonymous Users) ---
+# --- 📌 ADMIN DIRECT PERMANENT CLOUD UPLOAD ---
+@app.route('/api/upload-paper', methods=['POST'])
+def upload_paper():
+    if 'file' not in request.files:
+        return jsonify({"success": False, "message": "No file payload found."}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"success": False, "message": "No file chosen."}), 400
+
+    if file and file.filename.endswith('.pdf'):
+        try:
+            # Streams file straight onto Cloudinary permanent cloud storage
+            upload_result = cloudinary.uploader.upload(file, resource_type="raw", folder="itep_papers")
+            file_url = upload_result.get("secure_url")
+
+            academic_year = request.form.get('academicYear')
+            stream = request.form.get('stream')
+            dept = request.form.get('dept')
+            semester = request.form.get('semester')
+            paper_type = request.form.get('type')  
+            subject_name = request.form.get('subject')
+            subject_code = request.form.get('code')
+
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url))
+                conn.commit()
+            finally:
+                conn.close()
+            return jsonify({"success": True, "message": "Paper published to cloud permanently!"}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Cloud upload failed: {str(e)}"}), 500
+
+    return jsonify({"success": False, "message": "Only PDF documents are permitted."}), 400
+
+
+# --- 📌 ANONYMOUS PERMANENT CLOUD CONTRIBUTION ---
 @app.route('/api/contribute-paper', methods=['POST'])
 def contribute_paper():
     if 'file' not in request.files:
@@ -233,35 +271,35 @@ def contribute_paper():
         return jsonify({"success": False, "message": "No file chosen."}), 400
 
     if file and file.filename.endswith('.pdf'):
-        academic_year = request.form.get('academicYear')
-        stream = request.form.get('stream')
-        dept = request.form.get('dept')
-        semester = request.form.get('semester')
-        paper_type = request.form.get('type')  
-        subject_name = request.form.get('subject')
-        subject_code = request.form.get('code')
-
-        safe_filename = secure_filename(f"PENDING_{academic_year}_{stream}_{dept}_S{semester}_{subject_code}_{file.filename}")
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], safe_filename))
-
-        file_url = f"/uploaded_papers/{safe_filename}"
-        conn = get_db_connection()
         try:
-            cursor = conn.cursor()
-            # Insert directly into pending_papers holding table queue instead of the public one
-            cursor.execute('''
-                INSERT INTO pending_papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url))
-            conn.commit()
-        finally:
-            conn.close()
-        return jsonify({"success": True, "message": "Paper submitted to the moderation queue successfully!"}), 200
+            upload_result = cloudinary.uploader.upload(file, resource_type="raw", folder="itep_pending")
+            file_url = upload_result.get("secure_url")
+
+            academic_year = request.form.get('academicYear')
+            stream = request.form.get('stream')
+            dept = request.form.get('dept')
+            semester = request.form.get('semester')
+            paper_type = request.form.get('type')  
+            subject_name = request.form.get('subject')
+            subject_code = request.form.get('code')
+
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO pending_papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url))
+                conn.commit()
+            finally:
+                conn.close()
+            return jsonify({"success": True, "message": "Paper submitted to permanent moderation queue!"}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Cloud storage exception: {str(e)}"}), 500
 
     return jsonify({"success": False, "message": "Only PDF documents are permitted."}), 400
 
 
-# --- 📌 NEW GET PENDING PAPERS ENDPOINT (For Admin Panel View) ---
 @app.route('/api/get-pending-papers', methods=['GET'])
 def get_pending_papers():
     conn = get_db_connection()
@@ -275,17 +313,15 @@ def get_pending_papers():
     return jsonify(pending_list), 200
 
 
-# --- 📌 NEW ADMIN APPROVE/REJECT PAPER ENDPOINT ---
 @app.route('/api/approve-paper', methods=['POST'])
 def approve_paper():
     data = request.get_json()
     paper_id = data.get('id')
-    action = data.get('action') # 'approve' or 'reject'
+    action = data.get('action') 
 
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        # Find the targeted file record inside the moderation queue
         cursor.execute("SELECT * FROM pending_papers WHERE id = ?", (paper_id,))
         row = cursor.fetchone()
         paper = dict(row) if row else None
@@ -294,30 +330,19 @@ def approve_paper():
             return jsonify({"success": False, "message": "Paper record not found in queue."}), 404
 
         if action == 'approve':
-            # 1. Copy row values into the live public table catalog
             cursor.execute('''
                 INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (paper['academicYear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileUrl']))
             
-            # 2. Delete the record out of the moderation queue
             cursor.execute("DELETE FROM pending_papers WHERE id = ?", (paper_id,))
             conn.commit()
             return jsonify({"success": True, "message": "Paper approved and published publicly!"}), 200
 
         elif action == 'reject':
-            # 1. Delete file tracking record off the database table
             cursor.execute("DELETE FROM pending_papers WHERE id = ?", (paper_id,))
             conn.commit()
-            
-            # 2. Optional: Erase file footprint cleanly off local drive sectors
-            try:
-                filename = paper['fileUrl'].split('/')[-1]
-                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            except Exception:
-                pass
-                
-            return jsonify({"success": True, "message": "Paper contribution rejected and deleted cleanly."}), 200
+            return jsonify({"success": True, "message": "Paper contribution rejected cleanly from cloud system."}), 200
             
     finally:
         conn.close()
@@ -325,7 +350,6 @@ def approve_paper():
     return jsonify({"success": False, "message": "Invalid operations directive parameter."}), 400
 
 
-# --- Existing Route: Fetch Public Papers ---
 @app.route('/api/get-papers', methods=['GET'])
 def get_papers():
     stream = request.args.get('stream')
@@ -336,7 +360,7 @@ def get_papers():
     try:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT academicYear, stream, dept, semester, type, subject, code, fileUrl 
+            SELECT id, academicYear, stream, dept, semester, type, subject, code, fileUrl 
             FROM papers 
             WHERE stream = ? AND dept = ? AND academicYear = ?
         ''', (stream, dept, year))
@@ -345,11 +369,6 @@ def get_papers():
     finally:
         conn.close()
     return jsonify(matching_papers), 200
-
-
-@app.route('/uploaded_papers/<filename>')
-def serve_paper(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 @app.route('/api/approve-admin', methods=['POST'])
@@ -389,56 +408,11 @@ def get_pending_admins():
     return jsonify(pending_list), 200
 
 
-
-
-
-
-
-    # --- ADMIN DIRECT UPLOAD ENDPOINT ---
-@app.route('/api/upload-paper', methods=['POST'])
-def upload_paper():
-    if 'file' not in request.files:
-        return jsonify({"success": False, "message": "No file payload found."}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"success": False, "message": "No file chosen."}), 400
-
-    if file and file.filename.endswith('.pdf'):
-        academic_year = request.form.get('academicYear')
-        stream = request.form.get('stream')
-        dept = request.form.get('dept')
-        semester = request.form.get('semester')
-        paper_type = request.form.get('type')  
-        subject_name = request.form.get('subject')
-        subject_code = request.form.get('code')
-
-        safe_filename = secure_filename(f"{academic_year}_{stream}_{dept}_S{semester}_{subject_code}_{file.filename}")
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], safe_filename))
-
-        # Relative path for cross-device compatibility
-        file_url = f"/uploaded_papers/{safe_filename}"
-
-        conn = get_db_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url))
-            conn.commit()
-        finally:
-            conn.close()
-        return jsonify({"success": True, "message": "Paper published to live system successfully!"}), 200
-
-    return jsonify({"success": False, "message": "Only PDF documents are permitted."}), 400
-
-
-
-# --- 📌 ADMIN DIRECT PERMANENT REPOSITORY DELETION ENDPOINT ---
+# --- 📌 ADMIN TARGETED DELETION ENDPOINT ---
 @app.route('/api/delete-paper', methods=['POST'])
 def delete_paper():
     data = request.get_json()
-    paper_id = data.get('id')  # Now looks up the unique database row item ID
+    paper_id = data.get('id')  
     
     if not paper_id:
         return jsonify({"success": False, "message": "Missing targeted entry identifier."}), 400
@@ -446,7 +420,6 @@ def delete_paper():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        # Locate the precise tracking row to get its specific cloud file URL
         cursor.execute("SELECT fileUrl FROM papers WHERE id = ?", (paper_id,))
         row = cursor.fetchone()
         
@@ -461,12 +434,10 @@ def delete_paper():
             if 'itep_papers' in url_parts:
                 folder_index = url_parts.index('itep_papers')
                 public_id = '/'.join(url_parts[folder_index:])
-                import cloudinary.uploader
                 cloudinary.uploader.destroy(public_id, resource_type="raw")
         except Exception as cloud_err:
             print(f"⚠️ Cloud storage deletion note: {str(cloud_err)}")
 
-        # --- 📊 SQL Database Record Purge Engine ---
         cursor.execute("DELETE FROM papers WHERE id = ?", (paper_id,))
         conn.commit()
         
@@ -476,5 +447,8 @@ def delete_paper():
         return jsonify({"success": False, "message": f"Database transaction error: {str(e)}"}), 500
     finally:
         conn.close()
+
+
+# 📌 THIS REMAINS AT THE ABSOLUTE BOTTOM
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
