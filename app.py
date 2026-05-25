@@ -478,3 +478,5 @@ def delete_paper():
         return jsonify({"success": False, "message": f"Database transaction error: {str(e)}"}), 500
     finally:
         conn.close()
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
