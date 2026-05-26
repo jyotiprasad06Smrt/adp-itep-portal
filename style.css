@@ -783,3 +783,21 @@ img[src="studyroom.png"] {
     max-width: 340px !important;
   }
 }
+
+
+
+
+#dynamic-papers-display-page {
+    background-color: white;
+    border-radius: 12px; /* Keeps your clean rounded card corners */
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    /* 📌 THE MAGIC LINES FOR INNER SCROLLING: */
+    max-height: 75vh;        /* Limits the card size to 75% of the window screen height */
+    overflow-y: auto;        /* Spawns a vertical scrollbar ONLY when rows spill over */
+    overflow-x: hidden;      /* Prevents unwanted horizontal shifting */
+    
+    /* Smooth native scrolling experience for mobile browsers */
+    -webkit-overflow-scrolling: touch; 
+}
