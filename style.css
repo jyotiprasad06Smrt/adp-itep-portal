@@ -833,3 +833,107 @@ img[src="studyroom.png"] {
 .table-background::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+
+
+
+/* 📌 Global Helper Component Typography Layouts */
+.text-sans-left {
+    color: #333;
+    margin-top: 0;
+    font-family: sans-serif;
+    text-align: left;
+}
+
+.msg-muted-centered {
+    text-align: center;
+    color: #64748b;
+    padding: 20px;
+    font-family: sans-serif;
+}
+
+/* 📌 Flexbox Form Dropdowns Layout (Stream and Department) */
+.split-form-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.split-form-inputs select {
+    flex: 1;
+}
+
+/* 📌 Form Input Fields Sizing Rules */
+#upload-form input[type="text"],
+#upload-form input[type="number"],
+#upload-form select {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+/* 📌 Green Form Execution Button Alignment */
+.full-width-bold-btn {
+    width: 100%;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+
+
+
+
+
+
+/* 📌 Contribution Page Card Container Wrapper */
+.contribution-card {
+    max-width: 500px; 
+    margin: 20px auto; 
+    padding: 25px;
+}
+
+/* 📌 Flexbox Side-by-Side Split Row Engine */
+.split-row {
+    display: flex; 
+    gap: 10px;
+}
+.split-row select {
+    flex: 1;
+}
+
+/* 📌 Form Inputs Structural Spacer Alignment */
+.contribution-card .form-row,
+.contribution-card input[type="text"] {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+/* 📌 Dashed File Drag/Upload UI Zone Box */
+.upload-zone {
+    margin-bottom: 20px; 
+    border: 1px dashed #cbd5e1; 
+    padding: 15px; 
+    border-radius: 6px;
+}
+.upload-zone label {
+    display: block; 
+    font-size: 13px; 
+    margin-bottom: 8px; 
+    color: #475569;
+}
+
+/* 📌 Specialized Green Submission Execution Button */
+.submit-btn {
+    width: 100%; 
+    font-weight: bold; 
+    padding: 12px; 
+    background-color: #28a745; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.submit-btn:hover {
+    background-color: #218838; /* Smooth dark-green hover focus effect */
+}
