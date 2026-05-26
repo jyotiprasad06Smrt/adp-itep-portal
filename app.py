@@ -72,6 +72,7 @@ def init_db():
             ''')
             
             # 3. Create Core Live Public Question Paper Document Table
+            # 📌 FIXED: Added 'category' tracking field constraint column
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS papers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,11 +83,13 @@ def init_db():
                     type TEXT,
                     subject TEXT,
                     code TEXT,
-                    fileUrl TEXT
+                    fileUrl TEXT,
+                    category TEXT
                 )
             ''')
 
             # 4. Create Anonymous Pending Contributions holding table
+            # 📌 FIXED: Added 'category' tracking field constraint column
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS pending_papers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,7 +100,8 @@ def init_db():
                     type TEXT,
                     subject TEXT,
                     code TEXT,
-                    fileUrl TEXT
+                    fileUrl TEXT,
+                    category TEXT
                 )
             ''')
             
@@ -232,14 +236,12 @@ def upload_paper():
 
     if file and file.filename.endswith('.pdf'):
         try:
-            # Streams file straight onto Cloudinary permanent cloud storage
-            # Force Cloudinary to read it as a raw document asset type
+            # 📌 FIXED: Preserves the native file name and .pdf format structures
             upload_result = cloudinary.uploader.upload(
                 file, 
                 resource_type="raw", 
                 folder="itep_papers",
-                use_filename=True,
-                unique_filename=True
+                public_id=secure_filename(file.filename)
             )
             file_url = upload_result.get("secure_url")
 
@@ -250,14 +252,17 @@ def upload_paper():
             paper_type = request.form.get('type')  
             subject_name = request.form.get('subject')
             subject_code = request.form.get('code')
+            # 📌 FIXED: Added category extractor parameter variable mapping target
+            category = request.form.get('category')
 
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
+                # 📌 FIXED: Integrated structural category values to database write command
                 cursor.execute('''
-                    INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url))
+                    INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url, category))
                 conn.commit()
             finally:
                 conn.close()
@@ -279,13 +284,12 @@ def contribute_paper():
 
     if file and file.filename.endswith('.pdf'):
         try:
-            # Force Cloudinary to read it as a raw document asset type
+            # 📌 FIXED: Preserves the native file name and .pdf format structures
             upload_result = cloudinary.uploader.upload(
                 file, 
                 resource_type="raw", 
                 folder="itep_pending",
-                use_filename=True,
-                unique_filename=True
+                public_id=secure_filename(file.filename)
             )
             file_url = upload_result.get("secure_url")
 
@@ -296,14 +300,17 @@ def contribute_paper():
             paper_type = request.form.get('type')  
             subject_name = request.form.get('subject')
             subject_code = request.form.get('code')
+            # 📌 FIXED: Added category extractor parameter variable mapping target
+            category = request.form.get('category')
 
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
+                # 📌 FIXED: Integrated structural category values to database write command
                 cursor.execute('''
-                    INSERT INTO pending_papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url))
+                    INSERT INTO pending_papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url, category))
                 conn.commit()
             finally:
                 conn.close()
@@ -344,16 +351,28 @@ def approve_paper():
             return jsonify({"success": False, "message": "Paper record not found in queue."}), 404
 
         if action == 'approve':
+            # 📌 FIXED: Preserves the paper 'category' field data during approval transitions
             cursor.execute('''
-                INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (paper['academicYear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileUrl']))
+                INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (paper['academicYear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileUrl'], paper.get('category', 'Major')))
             
             cursor.execute("DELETE FROM pending_papers WHERE id = ?", (paper_id,))
             conn.commit()
             return jsonify({"success": True, "message": "Paper approved and published publicly!"}), 200
 
         elif action == 'reject':
+            # 📌 FIXED: Added automatic cloud storage asset deletion when drop action triggers
+            file_url = paper['fileUrl']
+            try:
+                url_parts = file_url.split('/')
+                if 'itep_pending' in url_parts:
+                    folder_index = url_parts.index('itep_pending')
+                    public_id = '/'.join(url_parts[folder_index:])
+                    cloudinary.uploader.destroy(public_id, resource_type="raw")
+            except Exception as cloud_err:
+                print(f"⚠️ Cloud curation cleanup note: {str(cloud_err)}")
+
             cursor.execute("DELETE FROM pending_papers WHERE id = ?", (paper_id,))
             conn.commit()
             return jsonify({"success": True, "message": "Paper contribution rejected cleanly from cloud system."}), 200
@@ -369,15 +388,18 @@ def get_papers():
     stream = request.args.get('stream')
     dept = request.args.get('dept')
     year = request.args.get('academicYear')
+    # 📌 FIXED: Collects category configuration parameter mapping variables from client query
+    category = request.args.get('category', 'Major')
 
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        # 📌 FIXED: Separates folders by Major and Minor parameters explicitly inside WHERE filter
         cursor.execute('''
             SELECT id, academicYear, stream, dept, semester, type, subject, code, fileUrl 
             FROM papers 
-            WHERE stream = ? AND dept = ? AND academicYear = ?
-        ''', (stream, dept, year))
+            WHERE stream = ? AND dept = ? AND academicYear = ? AND category = ?
+        ''', (stream, dept, year, category))
         rows = cursor.fetchall()
         matching_papers = [dict(row) for row in rows]
     finally:
@@ -445,8 +467,13 @@ def delete_paper():
         # --- ☁️ Cloudinary Asset Footprint Eraser Subsystem ---
         try:
             url_parts = file_url.split('/')
+            # 📌 FIXED: Added fallback condition logic tracking to wipe both types of asset folders cleanly
             if 'itep_papers' in url_parts:
                 folder_index = url_parts.index('itep_papers')
+                public_id = '/'.join(url_parts[folder_index:])
+                cloudinary.uploader.destroy(public_id, resource_type="raw")
+            elif 'itep_pending' in url_parts:
+                folder_index = url_parts.index('itep_pending')
                 public_id = '/'.join(url_parts[folder_index:])
                 cloudinary.uploader.destroy(public_id, resource_type="raw")
         except Exception as cloud_err:
