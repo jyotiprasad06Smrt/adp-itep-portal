@@ -6,8 +6,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash 
 import cloudinary
 import cloudinary.uploader
@@ -236,12 +236,23 @@ def upload_paper():
 
     if file and file.filename.endswith('.pdf'):
         try:
+
+
+            # 🧼 Secure and scrub any recursive case-insensitive trailing '.pdf' layers
+            safe_name = secure_filename(file.filename)
+            while safe_name.lower().endswith('.pdf'):
+                safe_name = safe_name[:-4]
+                
+            if not safe_name:
+                safe_name = f"paper_{random.randint(1000, 9999)}"
+
+            # Upload using the clean prefix string
             # 📌 FIXED: Preserves the native file name and .pdf format structures
             upload_result = cloudinary.uploader.upload(
                 file, 
                 resource_type="raw", 
                 folder="itep_papers",
-                public_id=secure_filename(file.filename)
+                public_id=safe_name
             )
             file_url = upload_result.get("secure_url")
 
@@ -284,12 +295,20 @@ def contribute_paper():
 
     if file and file.filename.endswith('.pdf'):
         try:
+
+            # 🧼 Secure and scrub any recursive case-insensitive trailing '.pdf' layers
+            safe_name = secure_filename(file.filename)
+            while safe_name.lower().endswith('.pdf'):
+                safe_name = safe_name[:-4]
+                
+            if not safe_name:
+                safe_name = f"contrib_{random.randint(1000, 9999)}"
             # 📌 FIXED: Preserves the native file name and .pdf format structures
             upload_result = cloudinary.uploader.upload(
                 file, 
                 resource_type="raw", 
                 folder="itep_pending",
-                public_id=secure_filename(file.filename)
+                public_id=safe_name
             )
             file_url = upload_result.get("secure_url")
 
