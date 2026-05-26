@@ -787,43 +787,49 @@ img[src="studyroom.png"] {
 
 
 
-/* 1. Make sure the entire display view container panel expands beautifully */
-#dynamic-papers-display-page {
-    width: 100%;
-    min-height: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 40px;
-}
 
-/* 2. Target the specific white table box to create the inner scrolling area */
-.responsive-table {
-    display: block;             /* Allows the table box to accept dimensions */
-    max-height: 55vh;           /* Constrains the card to about 55% of the viewport height */
-    overflow-y: auto;           /* Spawns the vertical scrollbar inside the white boundary */
-    overflow-x: auto;           /* Allows smooth side-to-side swiping on smaller screens */
+
+
+
+
+
+/* 1. 🎯 THE WHITE CARD SCROLLER CONTAINER (Exactly where you circled) */
+.table-background {
     background-color: white;
     border-radius: 12px;
-    padding: 15px;
+    padding: 20px;
+    width: 90%;                 /* Keeps the table beautifully wide on screen */
+    max-width: 1000px;          /* Centers and clamps maximum width stretch */
+    margin: 20px auto;          /* Centers the white box on the page layout */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     
-    /* Smooth native scrolling behaviors for mobile devices */
-    -webkit-overflow-scrolling: touch; 
+    /* 📌 This generates the vertical scrollbar straight onto the white card edge */
+    max-height: 50vh;           /* Constrains the card height to 50% of the screen view window */
+    overflow-y: auto;           /* Spawns vertical scrollbar on the white card border */
+    overflow-x: auto;           /* Permits responsive sideways swipe on tiny phone screens */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* 🎨 Sleek scrollbar track design for the inner table card */
-.responsive-table::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+/* 2. Reset the raw table so it acts as flat data content inside the scroller box */
+.responsive-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: transparent; /* Seamless blend inside white card container */
 }
-.responsive-table::-webkit-scrollbar-track {
+
+/* 🎨 Modern, slim custom scrollbar design on the right edge of the white box */
+.table-background::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.table-background::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 10px;
 }
-.responsive-table::-webkit-scrollbar-thumb {
+.table-background::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 10px;
 }
-.responsive-table::-webkit-scrollbar-thumb:hover {
+.table-background::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
