@@ -233,7 +233,7 @@ def upload_paper():
     if file and file.filename.endswith('.pdf'):
         try:
             # Streams file straight onto Cloudinary permanent cloud storage
-            upload_result = cloudinary.uploader.upload(file, resource_type="raw", folder="itep_papers")
+            upload_result = cloudinary.uploader.upload(file, resource_type="auto", folder="itep_papers")
             file_url = upload_result.get("secure_url")
 
             academic_year = request.form.get('academicYear')
@@ -272,7 +272,7 @@ def contribute_paper():
 
     if file and file.filename.endswith('.pdf'):
         try:
-            upload_result = cloudinary.uploader.upload(file, resource_type="raw", folder="itep_pending")
+            upload_result = cloudinary.uploader.upload(file, resource_type="auto", folder="itep_pending")
             file_url = upload_result.get("secure_url")
 
             academic_year = request.form.get('academicYear')
