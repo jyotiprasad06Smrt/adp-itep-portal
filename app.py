@@ -250,7 +250,7 @@ def upload_paper():
             # 📌 FIXED: Preserves the native file name and .pdf format structures
             upload_result = cloudinary.uploader.upload(
                 file, 
-                resource_type="raw", 
+                resource_type="image", 
                 folder="itep_papers",
                 public_id=safe_name
             )
@@ -306,7 +306,7 @@ def contribute_paper():
             # 📌 FIXED: Preserves the native file name and .pdf format structures
             upload_result = cloudinary.uploader.upload(
                 file, 
-                resource_type="raw", 
+                resource_type="image", 
                 folder="itep_pending",
                 public_id=safe_name
             )
