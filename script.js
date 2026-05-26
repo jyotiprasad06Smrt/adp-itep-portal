@@ -519,8 +519,13 @@ window.loadPendingPapers = function() {
             container.innerHTML += `
                 <div class="paper-card" style="border: 1px solid #cbd5e1; padding: 12px; margin-bottom: 10px; border-radius: 6px; background: #f8fafc;">
                     <h4 style="margin: 0 0 5px 0;">${paper.subject} (<span style="font-family: monospace;">${paper.code}</span>)</h4>
-                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #475569;">
-                        Year: ${paper.academicYear} | Dept: ${paper.dept.toUpperCase()} | Sem: ${paper.semester} | <b>Category: ${paper.category || 'Major'}</b>
+                    <p style="margin: 0 0 10px 0; font-size: 12px; color: #475569; line-height: 1.5;">
+                        <b>Year:</b> ${paper.academicYear} | 
+                        <b>Stream:</b> ${paper.stream.toUpperCase()} | 
+                        <b>Dept:</b> ${paper.dept.toUpperCase()} | 
+                        <b>Sem:</b> ${paper.semester} | 
+                        <b>Type:</b> ${paper.type.toUpperCase()} | 
+                        <b>Category:</b> ${paper.category || 'Major'}
                     </p>
                     <div>
                         <button class="view-btn" onclick="window.open('${paper.fileUrl}', '_blank')">Review PDF</button>
