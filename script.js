@@ -165,12 +165,12 @@ async function openDynamicRepositoryView(categoryType = "Major") {
             // Generate clean conditional buttons based on the type of paper uploaded
             const sessionalLink = isSessional ? `
                 <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
-                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${item.code}', 'sessional')">[Delete File]</span></div>
+                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper(${item.id})">[Delete File]</span></div>
             ` : `<span style="color:gray;">N/A</span>`;
 
             const endsemLink = !isSessional ? `
                 <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
-                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper('${item.code}', 'endsem')">[Delete File]</span></div>
+                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper(${item.id})">[Delete File]</span></div>
             ` : `<span style="color:gray;">N/A</span>`;
 
             tr.innerHTML = `
@@ -712,7 +712,14 @@ window.processPaper = function(paperId, actionDirective) {
     .catch(err => alert("Could not reach backend processing server pipeline."));
 }
 
-window.deleteLivePaper = async function(paperCode, paperType) {
+
+
+window.deleteLivePaper = async function(paperId) {
+    if (!paperId) {
+        alert("Frontend Error: No ID found on this row element!");
+        return;
+    }
+
     const passcode = prompt("ADMIN ACTION:\nPlease enter your Admin Password to delete this file:");
     if (!passcode) return;
     
@@ -721,13 +728,13 @@ window.deleteLivePaper = async function(paperCode, paperType) {
         return;
     }
 
-    if (!confirm(`Are you sure you want to permanently delete paper code "${paperCode}"?`)) return;
+    if (!confirm(`Are you sure you want to permanently delete paper record ID #${paperId}?`)) return;
     
     try {
         const response = await fetch(`${BACKEND_URL}/api/delete-paper`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: paperCode, type: paperType })
+            body: JSON.stringify({ id: parseInt(paperId) }) // Matches 'id' payload for app.py
         });
         
         const data = await response.json();
