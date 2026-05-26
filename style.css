@@ -937,3 +937,18 @@ img[src="studyroom.png"] {
 .submit-btn:hover {
     background-color: #218838; /* Smooth dark-green hover focus effect */
 }
+
+
+
+.split-row {
+    display: flex; 
+    gap: 10px;      
+    align-items: center;
+}
+
+.split-row select,
+.split-row input {
+    flex: 1;
+    width: 100%;    
+    margin-bottom: 0; 
+}
