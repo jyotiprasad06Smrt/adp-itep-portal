@@ -388,7 +388,7 @@ def approve_paper():
                 if 'itep_pending' in url_parts:
                     folder_index = url_parts.index('itep_pending')
                     public_id = '/'.join(url_parts[folder_index:])
-                    cloudinary.uploader.destroy(public_id, resource_type="raw")
+                    cloudinary.uploader.destroy(public_id, resource_type="image")
             except Exception as cloud_err:
                 print(f"⚠️ Cloud curation cleanup note: {str(cloud_err)}")
 
@@ -490,11 +490,11 @@ def delete_paper():
             if 'itep_papers' in url_parts:
                 folder_index = url_parts.index('itep_papers')
                 public_id = '/'.join(url_parts[folder_index:])
-                cloudinary.uploader.destroy(public_id, resource_type="raw")
+                cloudinary.uploader.destroy(public_id, resource_type="image")
             elif 'itep_pending' in url_parts:
                 folder_index = url_parts.index('itep_pending')
                 public_id = '/'.join(url_parts[folder_index:])
-                cloudinary.uploader.destroy(public_id, resource_type="raw")
+                cloudinary.uploader.destroy(public_id, resource_type="image")
         except Exception as cloud_err:
             print(f"⚠️ Cloud storage deletion note: {str(cloud_err)}")
 
