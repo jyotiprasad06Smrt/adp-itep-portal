@@ -113,7 +113,8 @@ async function openDynamicRepositoryView(categoryType = "Major") {
         papers.forEach(item => {
             const tr = document.createElement('tr');
             const isSessional = item.type === 'sessional';
-            const url = item.fileUrl.startsWith('http') ? item.fileUrl : `${BACKEND_URL}${item.fileUrl}`;
+            // Make sure this specific line inside your loop matches this layout exactly:
+            const url = item.fileUrl;
 
             // 📌 FIXED: deleteLivePaper passing item.id safely now instead of subject code string
             const sessionalLink = isSessional ? `
