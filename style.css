@@ -787,17 +787,43 @@ img[src="studyroom.png"] {
 
 
 
+/* 1. Make sure the entire display view container panel expands beautifully */
 #dynamic-papers-display-page {
-    background-color: white;
-    border-radius: 12px; /* Keeps your clean rounded card corners */
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 40px;
+}
 
-    /* 📌 THE MAGIC LINES FOR INNER SCROLLING: */
-    max-height: 75vh;        /* Limits the card size to 75% of the window screen height */
-    overflow-y: auto;        /* Spawns a vertical scrollbar ONLY when rows spill over */
-    overflow-x: hidden;      /* Prevents unwanted horizontal shifting */
+/* 2. Target the specific white table box to create the inner scrolling area */
+.responsive-table {
+    display: block;             /* Allows the table box to accept dimensions */
+    max-height: 55vh;           /* Constrains the card to about 55% of the viewport height */
+    overflow-y: auto;           /* Spawns the vertical scrollbar inside the white boundary */
+    overflow-x: auto;           /* Allows smooth side-to-side swiping on smaller screens */
+    background-color: white;
+    border-radius: 12px;
+    padding: 15px;
     
-    /* Smooth native scrolling experience for mobile browsers */
+    /* Smooth native scrolling behaviors for mobile devices */
     -webkit-overflow-scrolling: touch; 
+}
+
+/* 🎨 Sleek scrollbar track design for the inner table card */
+.responsive-table::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.responsive-table::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.responsive-table::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+.responsive-table::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
