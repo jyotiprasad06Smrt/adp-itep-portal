@@ -222,47 +222,71 @@
 </div>
 
 
-
-
 <div id="anonymous-contribute-page" class="hidden2">
-    <img src="studyroom.png" width="1540">
+    <img src="studyroom.png" width="1540" alt="Background Section">
     <button id="bck-contribute" class="back-button">← Go Back</button>
+    
     <div class="text-overlay">
-        <h1 class="heading2">Contribute a Previous Year Paper</h1>
-        <div class="table-background contrib-card-wrapper">
+        <h1 class="heading2">Contribute Question Paper</h1>
+        
+        <div class="table-background contribution-card">
             <form id="anonymous-upload-form">
-                <select id="contrib-year" required>
-                    <option value="">Select Academic Year</option>
-                    <option value="2025-26">2025-26</option>
-                    <option value="2026-27">2026-27</option>
-                    <option value="2027-28">2027-28</option>
-                </select>
-                <select id="contrib-stream" required>
-                    <option value="">Select Stream</option>
-                    <option value="ba-bed">B.A.-B.Ed. ITEP</option>
-                    <option value="bsc-bed">B.Sc.-B.Ed. ITEP</option>
-                </select>
-                <select id="contrib-dept" required disabled>
-                    <option value="" disabled selected>Select Department</option>
-                </select>
-                <input type="number" id="contrib-sem" placeholder="Semester (1-8)" min="1" max="8" required>
-                <select id="contrib-type" required>
-                    <option value="">Select Paper Type</option>
-                    <option value="sessional">Sessional Paper</option>
-                    <option value="endsem">EndSem Paper</option>
-                </select>
+                
+                <div class="form-row">
+                    <select id="contrib-year" required>
+                        <option value="" disabled selected>Select Academic Year</option>
+                        <option value="2025-26">2025-26</option>
+                        <option value="2026-27">2026-27</option>
+                        <option value="2027-28">2027-28</option>
+                        <option value="2028-29">2028-29</option>
+                        <option value="2029-30">2029-30</option>
+                    </select>
+                </div>
+                
+                <div class="form-row split-row">
+                    <select id="contrib-stream" required>
+                        <option value="" disabled selected>Select Stream</option>
+                        <option value="ba-bed">B.A.-B.Ed. ITEP</option>
+                        <option value="bsc-bed">B.Sc.-B.Ed. ITEP</option>
+                    </select> 
+                    <select id="contrib-dept" required>
+                        <option value="" disabled selected>Select Department</option>
+                    </select>
+                </div>                
+                
+                <div class="form-row">
+                    <input type="number" id="contrib-sem" placeholder="Semester (1-8)" min="1" max="8" required>
+                </div>
+                
+                <div class="form-row">
+                    <select id="contrib-type" required>
+                        <option value="" disabled selected>Select Paper Type</option>
+                        <option value="sessional">Sessional Paper</option>
+                        <option value="endsem">EndSem Paper</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <select id="contrib-category" required>
+                        <option value="" disabled selected>Select Paper Category</option>
+                        <option value="Major">Major Paper</option>
+                        <option value="Minor">Minor Paper</option>
+                    </select>
+                </div>
+                
                 <input type="text" id="contrib-name" placeholder="Subject Name" required>
                 <input type="text" id="contrib-code" placeholder="Subject Code" required>
-                <div class="file-box">
-                    <label for="contrib-file">Choose PDF Attachment (less than 3MB):</label>
-                    <input type="file" id="contrib-file" accept=".pdf" required style="margin-top: 8px;">
+                
+                <div class="file-box upload-zone">
+                    <label for="contrib-file">Choose PDF Question Paper (less than 3MB) :</label>
+                    <input type="file" id="contrib-file" accept=".pdf" required>
                 </div>
-                <button type="submit" class="special submit-contrib-btn">Submit Paper for Moderation</button>
+                
+                <button type="submit" class="special submit-btn">Submit to Moderation Queue</button>
             </form>
         </div>
     </div>
 </div>
-
 
 
 
@@ -292,10 +316,6 @@
 
 
 
-
-
-
-
 <div id="upload-dashboard" class="hidden9">
     <img src="studyroom.png" width="1540" alt="Background Section">
     <button id="bck9" class="back-button">← Log Out</button>
@@ -320,31 +340,24 @@
                         </thead>
                         <tbody id="pending-admins-tbody">
                             <tr>
-                                <td colspan="4" class="empty-queue-row">No pending admin requests.</td>
+                                <td colspan="5" class="empty-queue-row">No pending admin requests.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-
-
-
-        <div class="dashboard-column-card center-panel paper-moderation-card">
-            <h3 class="approval-header-title" style="color: #333; text-align: left; margin-top: 0; font-family: sans-serif;">Pending Paper Contributions</h3>
+            <div class="dashboard-column-card center-panel paper-moderation-card">
+                <h3 class="approval-header-title text-sans-left">Pending Paper Contributions</h3>
                 <div class="approval-table-scroll-wrapper">
-                <div id="pending-papers-container">
-                    <p class="empty-queue-row" style="text-align: center; color: #64748b; padding: 20px; font-family: sans-serif;">No pending paper requests matching queue parameters.</p>
+                    <div id="pending-papers-container">
+                        <p class="empty-queue-row msg-muted-centered">No pending paper requests matching queue parameters.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-
-
-
-
 
             <div class="dashboard-column-card right-panel">
-                <h3 class="upload-header-title" style="color: #333; margin-top: 0; font-family: sans-serif; text-align: left;">Upload Question Paper</h3>
+                <h3 class="upload-header-title text-sans-left">Upload Question Paper</h3>
                 <form id="upload-form">
                     <div class="form-row">
                         <select id="paper-year" required>
@@ -359,7 +372,7 @@
                         </select>
                     </div>
                     
-                    <div class="form-row">
+                    <div class="form-row split-form-inputs">
                         <select id="paper-stream" required>
                             <option value="">Select Stream</option>
                             <option value="ba-bed">B.A.-B.Ed. ITEP</option>
@@ -368,18 +381,28 @@
                         <select id="paper-dept" required>
                             <option value="">Select Department</option>
                         </select>
-                    </div>               
+                    </div>                
                     
                     <div class="form-row">
                         <input type="number" id="paper-sem" placeholder="Semester (1-8)" min="1" max="8" required>
                         <p id="sem-error-msg"></p>
                     </div>
                     
-                    <select id="paper-type" required>
-                        <option value="">Select Paper Type</option>
-                        <option value="sessional">Sessional Paper</option>
-                        <option value="endsem">EndSem Paper</option>
-                    </select>
+                    <div class="form-row">
+                        <select id="paper-type" required>
+                            <option value="">Select Paper Type</option>
+                            <option value="sessional">Sessional Paper</option>
+                            <option value="endsem">EndSem Paper</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <select id="paper-category" required>
+                            <option value="" disabled selected>Select Paper Category</option>
+                            <option value="Major">Major Paper</option>
+                            <option value="Minor">Minor Paper</option>
+                        </select>
+                    </div>
                     
                     <input type="text" id="paper-name" placeholder="Subject Name" required>
                     <input type="text" id="paper-code" placeholder="Subject Code" required>
@@ -389,16 +412,13 @@
                         <input type="file" id="paper-file" accept=".pdf" required>
                     </div>
                     
-                    <button type="submit" class="special" style="width: 100%; font-weight: bold;">Publish Document to Server</button>
+                    <button type="submit" class="special full-width-bold-btn">Publish Document to Server</button>
                 </form>
             </div>
 
-        </div> </div>
+        </div> 
+    </div>
 </div>
-
-
-
-
 
 
 
