@@ -1,5 +1,6 @@
 import os
 import random
+import requests
 import smtplib
 import sqlite3
 from email.mime.multipart import MIMEMultipart
@@ -283,6 +284,45 @@ def upload_paper():
             return jsonify({"success": False, "message": f"Cloud upload failed: {str(e)}"}), 500
 
     return jsonify({"success": False, "message": "Only PDF documents are permitted."}), 400
+
+
+
+
+
+
+# --- Secure API Relay Mail Dispatch Engine ---
+def send_real_otp_email(receiver_email, otp_code):
+    # PUT YOUR GOOGLE SCRIPT URL RIGHT HERE:
+    google_script_url = "PASTE_YOUR_COPIED_URL_HERE"
+    
+    body_text = f"Hello,\n\nThank you for initiating your Admin registration setup for the ADP ITEP Repository portal.\nVerification Code: {otp_code}\n\nBest regards,\nADP College ITEP Infrastructure System"
+
+    payload = {
+        "email": receiver_email,
+        "subject": "ADP ITEP Portal - Administrative Registration OTP Verification",
+        "body": body_text
+    }
+
+    try:
+        # This sends a web request (allowed) instead of an SMTP request (blocked)
+        response = requests.post(google_script_url, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            return True
+        else:
+            print("❌ Google Script refused the payload.")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Subsystem API relay failure: {e}")
+        return False
+
+
+
+
+
+
+
 
 
 # --- 📌 ANONYMOUS PERMANENT CLOUD CONTRIBUTION ---
