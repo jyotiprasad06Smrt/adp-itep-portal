@@ -180,8 +180,11 @@ safeBindClick('admin-login-btn', function() { deactivateAllViews(); document.get
 safeBindClick('bck-register', function() { document.getElementById('admin-register').style.display = 'none'; deactivateAllViews(); document.getElementById('login-interface').classList.remove('hidden2'); });
 safeBindClick('close-success-btn', function() { document.getElementById('admin-register').style.display = 'none'; deactivateAllViews(); document.getElementById('login-interface').classList.remove('hidden2'); });
 safeBindClick('bck8', function() { deactivateAllViews(); document.getElementById('login-interface').classList.remove('hidden2'); });
-safeBindClick('bck9', function(){ deactivateAllViews(); document.getElementById('login-interface').classList.remove('hidden2'); });
-
+safeBindClick('bck9', function(){ 
+    deactivateAllViews(); 
+    document.getElementById('login-interface').classList.remove('hidden2'); 
+    if (typeof showAdminTab === 'function') showAdminTab(null);
+});
 const loginForm = document.getElementById('admin-login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -395,6 +398,9 @@ if (uploadForm) {
     });
 }
 
+// Global array to hold the data temporarily so the "View Details" button can read it
+window.currentPendingAdmins = []; 
+
 // Queue Processing Rules
 async function loadPendingAdminsQueue() {
     const tbody = document.getElementById('pending-admins-tbody');
@@ -403,6 +409,8 @@ async function loadPendingAdminsQueue() {
     try {
         const response = await fetch(`${BACKEND_URL}/api/get-pending-admins`);
         const pendingUsers = await response.json();
+        
+        window.currentPendingAdmins = pendingUsers; // Save for the view button
         tbody.innerHTML = ""; 
 
         if (pendingUsers.length === 0) {
@@ -416,9 +424,13 @@ async function loadPendingAdminsQueue() {
                 <td style="text-align: left;"><b>${user.name}</b><br><small style="color:#64748b;">${user.college}</small></td>
                 <td style="text-align: left;">${user.username}</td>
                 <td style="text-align: left; font-family: monospace;">${user.email || 'N/A'}</td>
-                <td style="text-align: left;">Pending Approval</td>
+                <td style="text-align: left;">${user.stream.toUpperCase()}</td>
                 <td style="text-align: left;">
-                    <button class="view-btn" style="padding: 4px 10px; font-size: 12px; background-color:#28a745; color:white; border:none; border-radius:4px;" onclick="processAdminApproval('${user.username}')">Approve</button>
+                    <div class="moderation-btn-group">
+                        <button class="view-btn btn-review" onclick="window.viewAdminDetails('${user.username}')">Details</button>
+                        <button class="view-btn btn-approve" onclick="window.processAdminApproval('${user.username}', 'approve')">Accept</button>
+                        <button class="view-btn btn-reject" onclick="window.processAdminApproval('${user.username}', 'reject')">Reject</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -426,17 +438,48 @@ async function loadPendingAdminsQueue() {
     } catch (err) { tbody.innerHTML = `<tr><td colspan="5" style="color: red; text-align: center;">Error loading queue elements.</td></tr>`; }
 }
 
-window.processAdminApproval = async function(usernameToApprove) {
+window.processAdminApproval = async function(usernameToApprove, actionDirective) {
+    // Add a safety check before deleting someone
+    if (actionDirective === 'reject') {
+        if (!confirm(`Are you sure you want to reject the admin application for ${usernameToApprove}?`)) return;
+    }
+
     try {
         const response = await fetch(`${BACKEND_URL}/api/approve-admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: usernameToApprove })
+            body: JSON.stringify({ username: usernameToApprove, action: actionDirective }) // Sends approve/reject to Python
         });
         const result = await response.json();
-        if (result.success) { alert(result.message); loadPendingAdminsQueue(); } 
-        else { alert("Error processing approval: " + result.message); }
+        if (result.success) { 
+            alert(result.message); 
+            loadPendingAdminsQueue(); 
+        } else { 
+            alert("Error processing: " + result.message); 
+        }
     } catch (err) { alert("Could not reach backend server pipeline."); }
+};
+
+// New Function to display the applicant's full credentials
+window.viewAdminDetails = function(username) {
+    const user = window.currentPendingAdmins.find(u => u.username === username);
+    if (!user) return;
+    
+    const details = `
+👤 ADMIN APPLICANT DETAILS 👤
+-----------------------------------
+Name: ${user.name}
+Username: ${user.username}
+Email: ${user.email}
+
+🎓 ACADEMIC PROFILE
+-----------------------------------
+College: ${user.college}
+Stream: ${user.stream.toUpperCase()}
+Subject: ${user.subject}
+Passing Year: ${user.passYear}
+    `;
+    alert(details);
 };
 
 // --- 📌 UPDATED: Anonymous Form Contribution Handler ---
@@ -577,3 +620,59 @@ window.deleteLivePaper = async function(paperId) {
         
     } catch (err) { alert("Error connecting to backend servers."); }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+// ==========================================
+// ADMIN DASHBOARD TAB NAVIGATION LOGIC
+// ==========================================
+const navPendingAdmins = document.getElementById('nav-pending-admins');
+const navPendingPapers = document.getElementById('nav-pending-papers');
+const navUploadPaper = document.getElementById('nav-upload-paper');
+
+const secPendingAdmins = document.getElementById('section-pending-admins');
+const secPendingPapers = document.getElementById('section-pending-papers');
+const secUploadPaper = document.getElementById('section-upload-paper');
+
+// Helper function to hide everything, then show the target section
+function showAdminTab(targetSection) {
+    // Hide all sections
+    if (secPendingAdmins) secPendingAdmins.style.display = 'none';
+    if (secPendingPapers) secPendingPapers.style.display = 'none';
+    if (secUploadPaper) secUploadPaper.style.display = 'none';
+
+    // Show the requested section
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+}
+
+// Button Click Events
+if (navPendingAdmins) {
+    navPendingAdmins.addEventListener('click', () => {
+        showAdminTab(secPendingAdmins);
+        loadPendingAdminsQueue(); 
+    });
+}
+
+if (navPendingPapers) {
+    navPendingPapers.addEventListener('click', () => {
+        showAdminTab(secPendingPapers);
+        window.loadPendingPapers(); 
+    });
+}
+
+if (navUploadPaper) {
+    navUploadPaper.addEventListener('click', () => {
+        showAdminTab(secUploadPaper);
+    });
+}
