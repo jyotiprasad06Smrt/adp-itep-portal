@@ -471,6 +471,8 @@ def get_papers():
 def approve_admin():
     data = request.get_json()
     username_to_approve = data.get('username', '').strip()
+    action = data.get('action') # New parameter to catch Accept/Reject
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -478,7 +480,10 @@ def approve_admin():
         row = cursor.fetchone()
         user_profile = dict(row) if row else None
 
-        if user_profile:
+        if not user_profile:
+            return jsonify({"success": False, "message": "Admin target not found."}), 404
+
+        if action == 'approve':
             cursor.execute('''
                 INSERT INTO admins (username, password, name, college, passYear, stream, subject, email)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -486,9 +491,16 @@ def approve_admin():
             cursor.execute("DELETE FROM pending_approvals WHERE username = ?", (username_to_approve,))
             conn.commit()
             return jsonify({"success": True, "message": f"Admin '{username_to_approve}' approved!"}), 200
+            
+        elif action == 'reject':
+            # Simply delete them from the pending queue
+            cursor.execute("DELETE FROM pending_approvals WHERE username = ?", (username_to_approve,))
+            conn.commit()
+            return jsonify({"success": True, "message": f"Admin request for '{username_to_approve}' rejected."}), 200
+
     finally:
         conn.close()
-    return jsonify({"success": False, "message": "Admin target not found."}), 404
+    return jsonify({"success": False, "message": "Invalid operations directive parameter."}), 400
 
 
 @app.route('/api/get-pending-admins', methods=['GET'])
@@ -496,7 +508,8 @@ def get_pending_admins():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT username, name, college, email FROM pending_approvals")
+        # Changed to SELECT * to grab the full profile (Subject, Year, etc.) for the Details button
+        cursor.execute("SELECT * FROM pending_approvals")
         rows = cursor.fetchall()
         pending_list = [dict(row) for row in rows]
     finally:
