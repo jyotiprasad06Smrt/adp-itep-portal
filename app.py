@@ -2,7 +2,6 @@ import os
 import random
 import requests
 import smtplib
-import sqlite3
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from flask import Flask, jsonify, request, send_from_directory
@@ -12,6 +11,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash 
 import cloudinary
 import cloudinary.uploader
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 load_dotenv()
 
@@ -26,103 +27,11 @@ cloudinary.config(
     secure = True
 )
 
-# --- Engine Database Configuration ---
-DB_FILE = "itep_repository.db"  
 
 # Temporary volatile dictionary tracking OTP storage values
 OTP_STORE = {}        
 
-# --- SQLite Connection Helper ---
-def get_db_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row 
-    return conn
 
-# --- SQLite Persistent Initialization Engine ---
-def init_db():
-    conn = get_db_connection()
-    try:
-        with conn:
-            cursor = conn.cursor()
-            # 1. Create Admins table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS admins (
-                    username TEXT PRIMARY KEY,
-                    password TEXT NOT NULL,
-                    name TEXT,
-                    college TEXT,
-                    passYear INTEGER,
-                    stream TEXT,
-                    subject TEXT,
-                    email TEXT
-                )
-            ''')
-            
-            # 2. Create Pending Registrations table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS pending_approvals (
-                    username TEXT PRIMARY KEY,
-                    password TEXT NOT NULL,
-                    name TEXT,
-                    college TEXT,
-                    passYear INTEGER,
-                    stream TEXT,
-                    subject TEXT,
-                    email TEXT
-                )
-            ''')
-            
-            # 3. Create Core Live Public Question Paper Document Table
-            # 📌 FIXED: Added 'category' tracking field constraint column
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS papers (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    academicYear TEXT,
-                    stream TEXT,
-                    dept TEXT,
-                    semester INTEGER,
-                    type TEXT,
-                    subject TEXT,
-                    code TEXT,
-                    fileUrl TEXT,
-                    category TEXT
-                )
-            ''')
-
-            # 4. Create Anonymous Pending Contributions holding table
-            # 📌 FIXED: Added 'category' tracking field constraint column
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS pending_papers (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    academicYear TEXT,
-                    stream TEXT,
-                    dept TEXT,
-                    semester INTEGER,
-                    type TEXT,
-                    subject TEXT,
-                    code TEXT,
-                    fileUrl TEXT,
-                    category TEXT
-                )
-            ''')
-            
-            # Seed default admin records securely with structured profiles and hashed passwords
-            default_admins = [
-                ("jyotiprasad", generate_password_hash("jp2006"), "Jyoti Prasad", "NIT Rourkela", 2029, "bsc-bed", "Physics", "jyotiprasad20062006@gmail.com"),
-                ("priyaranjan2007", generate_password_hash("Priyaranjan7"), "Priyaranjan", "ADP College", 2029, "bsc-bed", "Chemistry", "priyaranjanpradhan15@gmail.com")
-            ]
-            for username, password, name, college, year, stream, subject, email in default_admins:
-                cursor.execute("SELECT 1 FROM admins WHERE username = ?", (username,))
-                if not cursor.fetchone():
-                    cursor.execute('''
-                        INSERT INTO admins (username, password, name, college, passYear, stream, subject, email) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (username, password, name, college, year, stream, subject, email))
-    finally:
-        conn.close()
-
-# Invoke database generation rules on startup
-init_db()
 
 
 # --- Secure SMTP Live Mail Dispatch Engine ---
@@ -167,7 +76,7 @@ def admin_login():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM admins WHERE username = ?", (username,))
+        cursor.execute("SELECT * FROM admins WHERE username = %s", (username,))
         row = cursor.fetchone()
         admin = dict(row) if row else None
     finally:
@@ -212,14 +121,14 @@ def admin_register():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM admins WHERE username = ?", (username,))
+        cursor.execute("SELECT 1 FROM admins WHERE username = %s", (username,))
         if cursor.fetchone():
             return jsonify({"success": False, "message": "Admin ID already assigned."}), 400
 
         hashed_password = generate_password_hash(data.get('password'))
         cursor.execute('''
             INSERT INTO pending_approvals (username, password, name, college, passYear, stream, subject, email)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ''', (username, hashed_password, data.get('name'), data.get('college'), data.get('passYear'), data.get('stream'), data.get('subject'), data.get('email')))
         conn.commit()
     finally:
@@ -274,7 +183,7 @@ def upload_paper():
                 # 📌 FIXED: Integrated structural category values to database write command
                 cursor.execute('''
                     INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url, category))
                 conn.commit()
             finally:
@@ -369,7 +278,7 @@ def contribute_paper():
                 # 📌 FIXED: Integrated structural category values to database write command
                 cursor.execute('''
                     INSERT INTO pending_papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url, category))
                 conn.commit()
             finally:
@@ -403,7 +312,7 @@ def approve_paper():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM pending_papers WHERE id = ?", (paper_id,))
+        cursor.execute("SELECT * FROM pending_papers WHERE id = %s", (paper_id,))
         row = cursor.fetchone()
         paper = dict(row) if row else None
 
@@ -414,10 +323,10 @@ def approve_paper():
             # 📌 FIXED: Preserves the paper 'category' field data during approval transitions
             cursor.execute('''
                 INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''', (paper['academicYear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileUrl'], paper.get('category', 'Major')))
             
-            cursor.execute("DELETE FROM pending_papers WHERE id = ?", (paper_id,))
+            cursor.execute("DELETE FROM pending_papers WHERE id = %s", (paper_id,))
             conn.commit()
             return jsonify({"success": True, "message": "Paper approved and published publicly!"}), 200
 
@@ -433,7 +342,7 @@ def approve_paper():
             except Exception as cloud_err:
                 print(f"⚠️ Cloud curation cleanup note: {str(cloud_err)}")
 
-            cursor.execute("DELETE FROM pending_papers WHERE id = ?", (paper_id,))
+            cursor.execute("DELETE FROM pending_papers WHERE id = %s", (paper_id,))
             conn.commit()
             return jsonify({"success": True, "message": "Paper contribution rejected cleanly from cloud system."}), 200
             
@@ -441,6 +350,32 @@ def approve_paper():
         conn.close()
 
     return jsonify({"success": False, "message": "Invalid operations directive parameter."}), 400
+
+
+
+
+
+
+
+
+
+
+
+# --- 📌 UPGRADED: Permanent Neon/PostgreSQL Connection Engine ---
+def get_db_connection():
+    # Render's DATABASE_URL is automatically used here
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL"), cursor_factory=RealDictCursor)
+    return conn
+
+
+
+
+
+
+
+
+
+
 
 
 @app.route('/api/get-papers', methods=['GET'])
@@ -458,7 +393,7 @@ def get_papers():
         cursor.execute('''
             SELECT id, academicYear, stream, dept, semester, type, subject, code, fileUrl 
             FROM papers 
-            WHERE stream = ? AND dept = ? AND academicYear = ? AND category = ?
+            WHERE stream = %s AND dept = %s AND academicYear = %s AND category = %s
         ''', (stream, dept, year, category))
         rows = cursor.fetchall()
         matching_papers = [dict(row) for row in rows]
@@ -476,7 +411,7 @@ def approve_admin():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM pending_approvals WHERE username = ?", (username_to_approve,))
+        cursor.execute("SELECT * FROM pending_approvals WHERE username = %s", (username_to_approve,))
         row = cursor.fetchone()
         user_profile = dict(row) if row else None
 
@@ -486,21 +421,103 @@ def approve_admin():
         if action == 'approve':
             cursor.execute('''
                 INSERT INTO admins (username, password, name, college, passYear, stream, subject, email)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ''', (user_profile["username"], user_profile["password"], user_profile["name"], user_profile["college"], user_profile["passYear"], user_profile["stream"], user_profile["subject"], user_profile["email"]))
-            cursor.execute("DELETE FROM pending_approvals WHERE username = ?", (username_to_approve,))
+            cursor.execute("DELETE FROM pending_approvals WHERE username = %s", (username_to_approve,))
             conn.commit()
             return jsonify({"success": True, "message": f"Admin '{username_to_approve}' approved!"}), 200
             
         elif action == 'reject':
             # Simply delete them from the pending queue
-            cursor.execute("DELETE FROM pending_approvals WHERE username = ?", (username_to_approve,))
+            cursor.execute("DELETE FROM pending_approvals WHERE username = %s", (username_to_approve,))
             conn.commit()
             return jsonify({"success": True, "message": f"Admin request for '{username_to_approve}' rejected."}), 200
 
     finally:
         conn.close()
     return jsonify({"success": False, "message": "Invalid operations directive parameter."}), 400
+
+
+
+
+
+
+
+
+
+
+
+def init_db():
+    conn = get_db_connection()
+    try:
+        with conn:
+            cursor = conn.cursor()
+            # 1. Admins
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS admins (
+                    username TEXT PRIMARY KEY,
+                    password TEXT NOT NULL,
+                    name TEXT,
+                    college TEXT,
+                    passYear INTEGER,
+                    stream TEXT,
+                    subject TEXT,
+                    email TEXT
+                )
+            ''')
+            # 2. Pending Approvals
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS pending_approvals (
+                    username TEXT PRIMARY KEY,
+                    password TEXT NOT NULL,
+                    name TEXT,
+                    college TEXT,
+                    passYear INTEGER,
+                    stream TEXT,
+                    subject TEXT,
+                    email TEXT
+                )
+            ''')
+            # 3. Papers (PostgreSQL uses SERIAL for auto-increment)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS papers (
+                    id SERIAL PRIMARY KEY,
+                    academicYear TEXT,
+                    stream TEXT,
+                    dept TEXT,
+                    semester INTEGER,
+                    type TEXT,
+                    subject TEXT,
+                    code TEXT,
+                    fileUrl TEXT,
+                    category TEXT
+                )
+            ''')
+            # 4. Pending Papers
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS pending_papers (
+                    id SERIAL PRIMARY KEY,
+                    academicYear TEXT,
+                    stream TEXT,
+                    dept TEXT,
+                    semester INTEGER,
+                    type TEXT,
+                    subject TEXT,
+                    code TEXT,
+                    fileUrl TEXT,
+                    category TEXT
+                )
+            ''')
+            conn.commit()
+    finally:
+        conn.close()
+
+
+
+
+
+
+
 
 
 @app.route('/api/get-pending-admins', methods=['GET'])
@@ -529,7 +546,7 @@ def delete_paper():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT fileUrl FROM papers WHERE id = ?", (paper_id,))
+        cursor.execute("SELECT fileUrl FROM papers WHERE id = %s", (paper_id,))
         row = cursor.fetchone()
         
         if not row:
@@ -544,15 +561,20 @@ def delete_paper():
             if 'itep_papers' in url_parts:
                 folder_index = url_parts.index('itep_papers')
                 public_id = '/'.join(url_parts[folder_index:])
+                public_id = public_id.rsplit('.', 1)[0]
                 cloudinary.uploader.destroy(public_id, resource_type="image")
             elif 'itep_pending' in url_parts:
                 folder_index = url_parts.index('itep_pending')
                 public_id = '/'.join(url_parts[folder_index:])
+
+
+
+                public_id = public_id.rsplit('.', 1)[0]
                 cloudinary.uploader.destroy(public_id, resource_type="image")
         except Exception as cloud_err:
             print(f"⚠️ Cloud storage deletion note: {str(cloud_err)}")
 
-        cursor.execute("DELETE FROM papers WHERE id = ?", (paper_id,))
+        cursor.execute("DELETE FROM papers WHERE id = %s", (paper_id,))
         conn.commit()
         
         return jsonify({"success": True, "message": "Paper vanished permanently from website and cloud storage!"}), 200
@@ -563,6 +585,11 @@ def delete_paper():
         conn.close()
 
 
+
+
+
+
+init_db()
 # 📌 THIS REMAINS AT THE ABSOLUTE BOTTOM
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
