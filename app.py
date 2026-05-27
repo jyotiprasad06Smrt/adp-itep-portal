@@ -127,7 +127,7 @@ init_db()
 # --- Secure SMTP Live Mail Dispatch Engine ---
 def send_real_otp_email(receiver_email, otp_code):
     smtp_server = "smtp.gmail.com"
-    smtp_port = 465  
+    smtp_port = 587  
     sender_email = os.getenv("SMTP_EMAIL")  
     sender_password = os.getenv("SMTP_PASSWORD")          
 
@@ -144,7 +144,7 @@ def send_real_otp_email(receiver_email, otp_code):
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10)
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
