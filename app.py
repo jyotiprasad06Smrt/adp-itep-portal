@@ -144,7 +144,7 @@ def send_real_otp_email(receiver_email, otp_code):
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10)
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())
         server.quit()
