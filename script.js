@@ -1,6 +1,6 @@
 const BACKEND_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
     ? "http://127.0.0.1:5000"
-    : "https://adp-itep-portal.onrender.com"; 
+    : "https://adp-itep-portal.vercel.app"; // NEW VERCEL URL
 
 let currentViewState = {
     stream: 'bsc-bed',
@@ -114,8 +114,7 @@ async function openDynamicRepositoryView(categoryType = "Major") {
             const tr = document.createElement('tr');
             const isSessional = item.type === 'sessional';
             // Make sure this specific line inside your loop matches this layout exactly:
-            const url = item.fileUrl;
-
+            const url = item.fileurl;
             // 📌 FIXED: deleteLivePaper passing item.id safely now instead of subject code string
             const sessionalLink = isSessional ? `
                 <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
@@ -129,7 +128,7 @@ async function openDynamicRepositoryView(categoryType = "Major") {
 
             tr.innerHTML = `
                 <td>${count++}</td>
-                <td>${item.academicYear}</td>
+                <td>${item.academicyear}</td>
                 <td>${item.subject}</td>
                 <td>${item.code}</td>
                 <td>${item.semester}</td>
@@ -477,7 +476,7 @@ Email: ${user.email}
 College: ${user.college}
 Stream: ${user.stream.toUpperCase()}
 Subject: ${user.subject}
-Passing Year: ${user.passYear}
+Passing Year: ${user.passyear}
     `;
     alert(details);
 };
@@ -559,12 +558,12 @@ window.loadPendingPapers = function() {
         }
 
         papers.forEach(paper => {
-            // 📌 FIXED: Now clearly explicitly surfaces the paper Category layout (Major/Minor) inside review cards
+            // 📌 FIXED: explicitly surfaces the paper Category layout and uses strictly lowercase keys for Postgres
             container.innerHTML += `
                 <div class="paper-card" style="border: 1px solid #cbd5e1; padding: 12px; margin-bottom: 10px; border-radius: 6px; background: #f8fafc;">
                     <h4 style="margin: 0 0 5px 0;">${paper.subject} (<span style="font-family: monospace;">${paper.code}</span>)</h4>
                     <p style="margin: 0 0 10px 0; font-size: 12px; color: #475569; line-height: 1.5;">
-                        <b>Year:</b> ${paper.academicYear} | 
+                        <b>Year:</b> ${paper.academicyear} | 
                         <b>Stream:</b> ${paper.stream.toUpperCase()} | 
                         <b>Dept:</b> ${paper.dept.toUpperCase()} | 
                         <b>Sem:</b> ${paper.semester} | 
@@ -572,7 +571,7 @@ window.loadPendingPapers = function() {
                         <b>Category:</b> ${paper.category || 'Major'}
                     </p>
                     <div>
-                        <button class="view-btn" onclick="window.open('${paper.fileUrl}', '_blank')">Review PDF</button>
+                        <button class="view-btn" onclick="window.open('${paper.fileurl}', '_blank')">Review PDF</button>
                         <button class="view-btn" style="background-color:#28a745; color:white;" onclick="window.processPaper(${paper.id}, 'approve')">Publish</button>
                         <button class="view-btn" style="background-color:#dc3545; color:white;" onclick="window.processPaper(${paper.id}, 'reject')">Drop</button>
                     </div>
