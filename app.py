@@ -147,18 +147,16 @@ def upload_paper():
 
     if file and file.filename.endswith('.pdf'):
         try:
-
-
-            # 🧼 Secure and scrub any recursive case-insensitive trailing '.pdf' layers
+            # 🧼 Secure and scrub the filename
             safe_name = secure_filename(file.filename)
             while safe_name.lower().endswith('.pdf'):
                 safe_name = safe_name[:-4]
-                
-            if not safe_name:
-                safe_name = f"paper_{random.randint(1000, 9999)}"
+            
+            # 👇 THE FIX: Generate a unique ID and append it to the filename
+            unique_id = random.randint(10000, 99999)
+            safe_name = f"{safe_name}_{unique_id}" if safe_name else f"paper_{unique_id}"
 
-            # Upload using the clean prefix string
-            # 📌 FIXED: Preserves the native file name and .pdf format structures
+            # Upload using the unique public_id
             upload_result = cloudinary.uploader.upload(
                 file, 
                 resource_type="image", 
@@ -174,13 +172,11 @@ def upload_paper():
             paper_type = request.form.get('type')  
             subject_name = request.form.get('subject')
             subject_code = request.form.get('code')
-            # 📌 FIXED: Added category extractor parameter variable mapping target
             category = request.form.get('category')
 
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
-                # 📌 FIXED: Integrated structural category values to database write command
                 cursor.execute('''
                     INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -193,8 +189,6 @@ def upload_paper():
             return jsonify({"success": False, "message": f"Cloud upload failed: {str(e)}"}), 500
 
     return jsonify({"success": False, "message": "Only PDF documents are permitted."}), 400
-
-
 
 
 
@@ -324,7 +318,7 @@ def approve_paper():
             cursor.execute('''
                 INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (paper['academicYear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileUrl'], paper.get('category', 'Major')))
+            ''', (paper['academicyear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileurl'], paper.get('category', 'Major')))
             
             cursor.execute("DELETE FROM pending_papers WHERE id = %s", (paper_id,))
             conn.commit()
@@ -332,7 +326,7 @@ def approve_paper():
 
         elif action == 'reject':
             # 📌 FIXED: Added automatic cloud storage asset deletion when drop action triggers
-            file_url = paper['fileUrl']
+            file_url = paper['fileurl']
             try:
                 url_parts = file_url.split('/')
                 if 'itep_pending' in url_parts:
@@ -382,7 +376,6 @@ def get_db_connection():
 def get_papers():
     stream = request.args.get('stream')
     dept = request.args.get('dept')
-    year = request.args.get('academicYear')
     # 📌 FIXED: Collects category configuration parameter mapping variables from client query
     category = request.args.get('category', 'Major')
 
@@ -391,10 +384,10 @@ def get_papers():
         cursor = conn.cursor()
         # 📌 FIXED: Separates folders by Major and Minor parameters explicitly inside WHERE filter
         cursor.execute('''
-            SELECT id, academicYear, stream, dept, semester, type, subject, code, fileUrl 
+            SELECT id, academicyear, stream, dept, semester, type, subject, code, fileurl 
             FROM papers 
-            WHERE stream = %s AND dept = %s AND academicYear = %s AND category = %s
-        ''', (stream, dept, year, category))
+            WHERE stream = %s AND dept = %s  AND category = %s
+        ''', (stream, dept, category))
         rows = cursor.fetchall()
         matching_papers = [dict(row) for row in rows]
     finally:
@@ -422,7 +415,7 @@ def approve_admin():
             cursor.execute('''
                 INSERT INTO admins (username, password, name, college, passYear, stream, subject, email)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (user_profile["username"], user_profile["password"], user_profile["name"], user_profile["college"], user_profile["passYear"], user_profile["stream"], user_profile["subject"], user_profile["email"]))
+            ''', (user_profile["username"], user_profile["password"], user_profile["name"], user_profile["college"], user_profile["passyear"], user_profile["stream"], user_profile["subject"], user_profile["email"]))
             cursor.execute("DELETE FROM pending_approvals WHERE username = %s", (username_to_approve,))
             conn.commit()
             return jsonify({"success": True, "message": f"Admin '{username_to_approve}' approved!"}), 200
@@ -552,7 +545,7 @@ def delete_paper():
         if not row:
             return jsonify({"success": False, "message": "Paper record not found in database."}), 404
             
-        file_url = row['fileUrl']
+        file_url = row['fileurl']
 
         # --- ☁️ Cloudinary Asset Footprint Eraser Subsystem ---
         try:
