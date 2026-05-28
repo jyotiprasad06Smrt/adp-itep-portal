@@ -952,3 +952,43 @@ img[src="studyroom.png"] {
     width: 100%;    
     margin-bottom: 0; 
 }
+
+
+
+
+
+
+
+
+
+
+.special-full-width-bold-btn{
+  background-color: #28a745;
+  color : white;
+}
+
+
+
+
+
+#anonymous-upload-form, #anonymous-upload-common-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#anonymous-upload-form select,
+#anonymous-upload-form input[type="text"],
+#anonymous-upload-form input[type="number"],
+#anonymous-upload-common-form select,
+#anonymous-upload-common-form input[type="text"],
+#anonymous-upload-common-form input[type="number"] {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #f8fafc;
+  color: #333;
+}
