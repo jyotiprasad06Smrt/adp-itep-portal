@@ -34,36 +34,6 @@ OTP_STORE = {}
 
 
 
-# --- Secure SMTP Live Mail Dispatch Engine ---
-def send_real_otp_email(receiver_email, otp_code):
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587  
-    sender_email = os.getenv("SMTP_EMAIL")  
-    sender_password = os.getenv("SMTP_PASSWORD")          
-
-    if not sender_email or not sender_password:
-        print("❌ Missing environment variables in .env file.")
-        return False
-    
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = "ADP ITEP Portal - Administrative Registration OTP Verification"
-
-    body = f"Hello,\n\nThank you for initiating your Admin registration setup for the ADP ITEP Repository portal.\nVerification Code: {otp_code}\n\nBest regards,\nADP College ITEP Infrastructure System"
-    msg.attach(MIMEText(body, 'plain'))
-
-    try:
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
-        return True
-    except Exception as e:
-        print(f"❌ Subsystem failure routing secure data packets to Gmail delivery lines: {e}")
-        return False
-
 
 # --- Core Web API Router Endpoints ---
 
