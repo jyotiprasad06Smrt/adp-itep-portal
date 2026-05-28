@@ -29,7 +29,10 @@ function deactivateAllViews() {
         { id: 'dynamic-papers-display-page', cls: 'hidden2' },
         { id: 'admin-login', cls: 'hidden8' },
         { id: 'upload-dashboard', cls: 'hidden9' },
-        { id: 'anonymous-contribute-page', cls: 'hidden2' }
+        { id: 'anonymous-contribute-page', cls: 'hidden2' },
+        { id: 'upload-dashboard', cls: 'hidden9' },
+        { id: 'anonymous-contribute-page', cls: 'hidden2' },
+        { id: 'anonymous-contribute-common-page', cls: 'hidden2' } 
     ];
     
     screens.forEach(item => {
@@ -83,6 +86,29 @@ safeBindClick('eng-btn', function(){ currentViewState.dept = 'english'; openDyna
 safeBindClick('asm-btn', function(){ currentViewState.dept = 'assamese'; openDynamicRepositoryView("Major"); });
 safeBindClick('hin-btn', function(){ currentViewState.dept = 'hindi'; openDynamicRepositoryView("Major"); });
 
+
+
+
+
+
+
+safeBindClick('contribute-common-btn', function() { deactivateAllViews(); document.getElementById('anonymous-contribute-common-page').classList.remove('hidden2'); });
+safeBindClick('bck-contribute-common', function() { deactivateAllViews(); document.getElementById('login-interface').classList.remove('hidden2'); });
+
+safeBindClick('common-papers-btn', function() { 
+    currentViewState.stream = 'common'; 
+    currentViewState.dept = 'common'; 
+    openDynamicRepositoryView("Common"); 
+});
+
+
+
+
+
+
+
+
+
 // --- 📊 UPDATED: Dynamic Repository Fetch Engine ---
 async function openDynamicRepositoryView(categoryType = "Major") {
     deactivateAllViews();
@@ -92,8 +118,13 @@ async function openDynamicRepositoryView(categoryType = "Major") {
     
     const titleElement = document.getElementById('dynamic-page-title');
     const tableBody = document.getElementById('dynamic-table-body');
+
+    if (titleElement) {
+        titleElement.textContent = currentViewState.stream === 'common' 
+            ? "Common Question Papers" 
+            : `${currentViewState.dept.toUpperCase()} ${categoryType} Papers`;
+    }
     
-    if (titleElement) titleElement.textContent = `${currentViewState.dept.toUpperCase()} ${categoryType} Papers`;
     if (tableBody) tableBody.innerHTML = `<tr><td colspan="7">Querying resource servers...</td></tr>`;
 
     try {
@@ -154,6 +185,13 @@ safeBindClick('dynamic-back-btn', function() {
     } else if (currentViewState.stream === 'ba-bed') {
         const targetMenu = document.getElementById(isMinor ? 'ba-bed-minor' : 'ba-bed-select-dept');
         if (targetMenu) targetMenu.classList.remove(isMinor ? 'hidden10' : 'hidden6');
+    }
+
+
+
+
+    else if (currentViewState.stream === 'common') {
+        document.getElementById('main-website').classList.remove('hidden3');
     }
 });
 
@@ -397,6 +435,54 @@ if (uploadForm) {
     });
 }
 
+
+
+// --- 📌 NEW: Admin Common Paper Upload Handler ---
+const uploadCommonForm = document.getElementById('upload-common-form');
+if (uploadCommonForm) {
+    uploadCommonForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); 
+        const semValue = document.getElementById('admin-common-sem').value;
+        const fileInput = document.getElementById('admin-common-file');
+
+        if (semValue < 1 || semValue > 8 || !Number.isInteger(Number(semValue))) { alert("Please enter a valid semester (1-8)."); return; }
+        if (fileInput.files.length === 0) { alert("Please select a file to upload."); return; }
+        if (fileInput.files[0].size > 3 * 1024 * 1024) { alert("Upload Error: File must be smaller than 3MB."); return; }
+
+        const formData = new FormData();
+        formData.append('academicYear', document.getElementById('admin-common-year').value);
+        formData.append('stream', 'common'); // Hardcoded universal value
+        formData.append('dept', 'common');   // Hardcoded universal value
+        formData.append('semester', semValue);
+        formData.append('type', document.getElementById('admin-common-type').value);
+        formData.append('category', 'Common'); // Hardcoded universal value
+        formData.append('subject', document.getElementById('admin-common-name').value);
+        formData.append('code', document.getElementById('admin-common-code').value);
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/upload-paper`, { method: 'POST', body: formData });
+            const result = await response.json();
+            if (response.ok) {
+                alert(`Success! ${result.message}`);
+                uploadCommonForm.reset();
+            } else { alert(`Upload Error: ${result.message}`); }
+        } catch (err) { alert("Failed to connect to backend server."); }
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Global array to hold the data temporarily so the "View Details" button can read it
 window.currentPendingAdmins = []; 
 
@@ -543,43 +629,112 @@ if (contribStreamSelect && contribDeptSelect) {
     });
 }
 
+
+
+
+
+
+
+
+
+// --- 📌 NEW: Anonymous Common Paper Contribution Handler ---
+const anonCommonForm = document.getElementById('anonymous-upload-common-form');
+if (anonCommonForm) {
+    anonCommonForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const semValue = document.getElementById('contrib-common-sem').value;
+        
+        if (semValue < 1 || semValue > 8 || !Number.isInteger(Number(semValue)) || semValue.includes('.')){
+            alert("Please enter a valid whole semester integer between 1 and 8."); return;
+        }
+
+        const formData = new FormData();
+        formData.append('academicYear', document.getElementById('contrib-common-year').value);
+        formData.append('stream', 'common'); // Hardcoded securely
+        formData.append('dept', 'common');   // Hardcoded securely
+        formData.append('semester', semValue);
+        formData.append('type', document.getElementById('contrib-common-type').value);
+        formData.append('category', 'Common'); // Hardcoded securely
+        formData.append('subject', document.getElementById('contrib-common-name').value);
+        formData.append('code', document.getElementById('contrib-common-code').value);
+        formData.append('file', document.getElementById('contrib-common-file').files[0]);
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/contribute-paper`, { method: 'POST', body: formData });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                anonCommonForm.reset();
+            } else { alert("Submission Refused: " + data.message); }
+        } catch { alert("Error sending request payload to background servers."); }
+    });
+}
+
+
+
+
+
+
+
+
+
 // --- 📌 UPDATED: Review Moderation Subsystem UI ---
+// --- 📌 UPDATED: Review Moderation Subsystem UI (Split Queues) ---
 window.loadPendingPapers = function() {
     fetch(`${BACKEND_URL}/api/get-pending-papers`)
     .then(res => res.json())
     .then(papers => {
         const container = document.getElementById('pending-papers-container');
-        if (!container) return;
-        container.innerHTML = ''; 
+        const commonContainer = document.getElementById('pending-common-container');
+        if (!container || !commonContainer) return;
 
-        if (papers.length === 0) {
-            container.innerHTML = '<p class="empty-queue-row" style="text-align:center; padding:20px; color:#64748b; font-family:sans-serif;">No pending paper requests.</p>';
-            return;
-        }
+        // Split data into regular papers and common papers
+        const regularPapers = papers.filter(p => p.stream !== 'common');
+        const commonPapers = papers.filter(p => p.stream === 'common');
 
-        papers.forEach(paper => {
-            // 📌 FIXED: explicitly surfaces the paper Category layout and uses strictly lowercase keys for Postgres
-            container.innerHTML += `
-                <div class="paper-card" style="border: 1px solid #cbd5e1; padding: 12px; margin-bottom: 10px; border-radius: 6px; background: #f8fafc;">
-                    <h4 style="margin: 0 0 5px 0;">${paper.subject} (<span style="font-family: monospace;">${paper.code}</span>)</h4>
-                    <p style="margin: 0 0 10px 0; font-size: 12px; color: #475569; line-height: 1.5;">
-                        <b>Year:</b> ${paper.academicyear} | 
-                        <b>Stream:</b> ${paper.stream.toUpperCase()} | 
-                        <b>Dept:</b> ${paper.dept.toUpperCase()} | 
-                        <b>Sem:</b> ${paper.semester} | 
-                        <b>Type:</b> ${paper.type.toUpperCase()} | 
-                        <b>Category:</b> ${paper.category || 'Major'}
-                    </p>
-                    <div>
-                        <button class="view-btn" onclick="window.open('${paper.fileurl}', '_blank')">Review PDF</button>
-                        <button class="view-btn" style="background-color:#28a745; color:white;" onclick="window.processPaper(${paper.id}, 'approve')">Publish</button>
-                        <button class="view-btn" style="background-color:#dc3545; color:white;" onclick="window.processPaper(${paper.id}, 'reject')">Drop</button>
+        // Render helper function
+        const renderPapers = (paperArray, targetDiv, emptyMsg) => {
+            targetDiv.innerHTML = '';
+            if (paperArray.length === 0) {
+                targetDiv.innerHTML = `<p class="empty-queue-row" style="text-align:center; padding:20px; color:#64748b;">${emptyMsg}</p>`;
+                return;
+            }
+            paperArray.forEach(paper => {
+                const badge = paper.stream === 'common' 
+                    ? `<span style="background:#17a2b8; color:white; padding:2px 6px; border-radius:4px; font-size:10px;">COMMON PAPER</span>` 
+                    : `<b>Stream:</b> ${paper.stream.toUpperCase()} | <b>Dept:</b> ${paper.dept.toUpperCase()} | <b>Category:</b> ${paper.category || 'Major'}`;
+
+                targetDiv.innerHTML += `
+                    <div class="paper-card" style="border: 1px solid #cbd5e1; padding: 12px; margin-bottom: 10px; border-radius: 6px; background: #f8fafc;">
+                        <h4 style="margin: 0 0 5px 0;">${paper.subject} (<span style="font-family: monospace;">${paper.code}</span>)</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #475569; line-height: 1.5;">
+                            <b>Year:</b> ${paper.academicyear} | <b>Sem:</b> ${paper.semester} | <b>Type:</b> ${paper.type.toUpperCase()} <br>
+                            ${badge}
+                        </p>
+                        <div>
+                            <button class="view-btn" onclick="window.open('${paper.fileurl}', '_blank')">Review PDF</button>
+                            <button class="view-btn" style="background-color:#28a745; color:white;" onclick="window.processPaper(${paper.id}, 'approve')">Publish</button>
+                            <button class="view-btn" style="background-color:#dc3545; color:white;" onclick="window.processPaper(${paper.id}, 'reject')">Drop</button>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        };
+
+        renderPapers(regularPapers, container, "No pending paper requests matching queue parameters.");
+        renderPapers(commonPapers, commonContainer, "No pending common paper requests.");
     });
 }
+
+
+
+
+
+
+
+
+
+
 
 window.processPaper = function(paperId, actionDirective) {
     fetch(`${BACKEND_URL}/api/approve-paper`, {
@@ -629,25 +784,29 @@ window.deleteLivePaper = async function(paperId) {
 
 
 
-
-
 // ==========================================
 // ADMIN DASHBOARD TAB NAVIGATION LOGIC
 // ==========================================
 const navPendingAdmins = document.getElementById('nav-pending-admins');
 const navPendingPapers = document.getElementById('nav-pending-papers');
+const navPendingCommon = document.getElementById('nav-pending-common'); // NEW
 const navUploadPaper = document.getElementById('nav-upload-paper');
+const navUploadCommon = document.getElementById('nav-upload-common');   // NEW
 
 const secPendingAdmins = document.getElementById('section-pending-admins');
 const secPendingPapers = document.getElementById('section-pending-papers');
+const secPendingCommon = document.getElementById('section-pending-common'); // NEW
 const secUploadPaper = document.getElementById('section-upload-paper');
+const secUploadCommon = document.getElementById('section-upload-common');   // NEW
 
 // Helper function to hide everything, then show the target section
 function showAdminTab(targetSection) {
     // Hide all sections
     if (secPendingAdmins) secPendingAdmins.style.display = 'none';
     if (secPendingPapers) secPendingPapers.style.display = 'none';
+    if (secPendingCommon) secPendingCommon.style.display = 'none';
     if (secUploadPaper) secUploadPaper.style.display = 'none';
+    if (secUploadCommon) secUploadCommon.style.display = 'none';
 
     // Show the requested section
     if (targetSection) {
@@ -657,21 +816,17 @@ function showAdminTab(targetSection) {
 
 // Button Click Events
 if (navPendingAdmins) {
-    navPendingAdmins.addEventListener('click', () => {
-        showAdminTab(secPendingAdmins);
-        loadPendingAdminsQueue(); 
-    });
+    navPendingAdmins.addEventListener('click', () => { showAdminTab(secPendingAdmins); loadPendingAdminsQueue(); });
 }
-
 if (navPendingPapers) {
-    navPendingPapers.addEventListener('click', () => {
-        showAdminTab(secPendingPapers);
-        window.loadPendingPapers(); 
-    });
+    navPendingPapers.addEventListener('click', () => { showAdminTab(secPendingPapers); window.loadPendingPapers(); });
 }
-
+if (navPendingCommon) {
+    navPendingCommon.addEventListener('click', () => { showAdminTab(secPendingCommon); window.loadPendingPapers(); });
+}
 if (navUploadPaper) {
-    navUploadPaper.addEventListener('click', () => {
-        showAdminTab(secUploadPaper);
-    });
+    navUploadPaper.addEventListener('click', () => { showAdminTab(secUploadPaper); });
+}
+if (navUploadCommon) {
+    navUploadCommon.addEventListener('click', () => { showAdminTab(secUploadCommon); });
 }
