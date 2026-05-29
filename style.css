@@ -273,12 +273,13 @@ td, th {
   background-color: #f4f6f9;
   color: #475569;
 }
-#admin-login-form, #upload-form {
+#admin-login-form, #upload-form, #upload-common-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-#admin-login-form input, #upload-form input, #upload-form select {
+#admin-login-form input, #upload-form input, #upload-form select,
+#upload-common-form input, #upload-common-form select {
   padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid #dcdcdc;
