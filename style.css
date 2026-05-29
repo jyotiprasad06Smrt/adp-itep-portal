@@ -105,8 +105,6 @@ td, th {
 }
 
 
-
-
 .text-overlay2 {
   position: absolute;
   top: 0;
@@ -127,10 +125,6 @@ td, th {
     rgba(0, 0, 0, 0.1) 90%
   );
 }
-
-
-
-
 
 /* Re-enable internal text element selections if necessary */
 .text-overlay h1, .text-overlay h4, .text-overlay div, .text-overlay table, .text-overlay form {
@@ -186,13 +180,12 @@ td, th {
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 20px;
 }
-
 .logo {
   position: absolute;
   height: auto;
   top: 20px;
   right: 20px;
-  width: 90px;
+  width: 60px;
   z-index: 9999;
 }
 .back-button {
@@ -268,27 +261,23 @@ td, th {
   width: 100%;
   margin-top: 15px;
 }
-
 .approval-data-table {
   width: 100%;
   border-collapse: collapse;
   font-family: sans-serif;
   font-size: 14px;
 }
-
 .approval-data-table th {
   padding: 8px;
   border-bottom: 2px solid #cbd5e1;
   background-color: #f4f6f9;
   color: #475569;
 }
-
 #admin-login-form, #upload-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-
 #admin-login-form input, #upload-form input, #upload-form select {
   padding: 14px 16px;
   border-radius: 8px;
@@ -299,7 +288,6 @@ td, th {
   background-color: #fafafa;
   color: #333;
 }
-
 .form-row { display: flex; gap: 15px; }
 .file-box {
   background-color: #f4f6f9;
@@ -308,19 +296,16 @@ td, th {
   border: 2px dashed #cbd5e1;
   text-align: left;
 }
-
 /* --- Admin Registration Subsystem Additions --- */
 .admin-register-viewport {
     position: relative;
     width: 100vw;
     height: 100vh;
 }
-
 .register-viewport-adjust {
   padding-top: 50px !important;
   justify-content: center !important;
 }
-
 .professional-reg-card {
   background-color: rgba(255, 255, 255, 0.96);
   border-radius: 16px;
@@ -331,7 +316,6 @@ td, th {
   padding: 35px;
   box-sizing: border-box;
 }
-
 .reg-card-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 6px;}
 .reg-card-subtitle { font-size: 18px; text-align: center; margin-bottom: 25px; }
 .step-indicator { font-size: 12px; font-weight: 600; text-transform: uppercase; color: #2b7a78; margin-bottom: 15px; }
@@ -340,7 +324,6 @@ td, th {
 .input-field-wrap { flex: 1; display: flex; flex-direction: column; text-align: left; }
 .input-field-wrap-short { width: 120px; display: flex; flex-direction: column; text-align: left; }
 .input-field-wrap-long { flex: 1; display: flex; flex-direction: column; text-align: left; }
-
 .professional-reg-card label { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
 .professional-reg-card input {
   padding: 12px 14px !important;
@@ -350,7 +333,6 @@ td, th {
   width: 100% !important;
   box-sizing: border-box !important;
 }
-
 .reg-primary-btn {
   background-color: #1e293b;
   color: white;
@@ -380,11 +362,9 @@ td, th {
   border-radius: 8px;
   height: 43px;
 }
-
 .success-green { background-color: #10b981 !important; }
 .blue-accent { background-color: #3b82f6 !important; }
 .success-alignment { display: flex; flex-direction: column; align-items: center; text-align: center; }
-
 .success-checkmark-icon {
   font-size: 48px;
   color: #10b981;
@@ -397,14 +377,10 @@ td, th {
   justify-content: center;
   margin-bottom: 20px;
 }
-
 @media (max-width: 992px) {
   .dashboard-flex-container { flex-direction: column; align-items: center; }
   .left-panel, .right-panel { width: 100%; }
 }
-
-
-
 /* ========================================================
    Anonymous Contribution Page & Form Layout Styles
    ======================================================== */
@@ -412,20 +388,14 @@ td, th {
   width: 100% !important;
   max-width: 520px !important; /* Prevents stretching on desktop */
   box-sizing: border-box;
-
-
-
-
   max-height: 85vh;
   overflow-y: auto;
 }
-
 #anonymous-upload-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-
 #anonymous-upload-form select,
 #anonymous-upload-form input[type="text"],
 #anonymous-upload-form input[type="number"] {
@@ -550,12 +520,6 @@ td, th {
 .paper-card button:nth-child(3) { background-color: #dc3545 !important; } /* Drop (Red) */
 
 
-
-
-
-
-
-
 /* Ensure background images are fluid across all viewport shapes */
 img[src="studyroom.png"] {
   width: 100% !important;
@@ -646,11 +610,6 @@ img[src="studyroom.png"] {
   }
 }
 
-
-
-
-
-
 /* --- Premium, Symmetrical Dual Developer Profiles Configuration --- */
 .developer-profile {
   position: absolute !important;
@@ -720,24 +679,20 @@ img[src="studyroom.png"] {
   color: #ffffff;
   line-height: 1.2;
 }
-
 .dev-college {
   font-size: 11px;
   margin: 0 0 4px 0;
   color: #cbd5e1;
 }
-
 .dev-email {
   font-size: 11px;
   margin: 0 0 6px 0;
   color: #94a3b8;
 }
-
 .dev-socials {
   display: flex;
   gap: 8px;
 }
-
 .social-link {
   font-size: 10px;
   text-decoration: none;
@@ -748,7 +703,6 @@ img[src="studyroom.png"] {
   display: inline-flex;
   align-items: center;
 }
-
 .insta {
   background-color: rgba(225, 48, 108, 0.15);
   color: #ff7ebb;
@@ -784,16 +738,6 @@ img[src="studyroom.png"] {
   }
 }
 
-
-
-
-
-
-
-
-
-
-/* 1. 🎯 THE WHITE CARD SCROLLER CONTAINER (Exactly where you circled) */
 .table-background {
     background-color: white;
     border-radius: 12px;
@@ -921,7 +865,6 @@ img[src="studyroom.png"] {
     margin-bottom: 8px; 
     color: #475569;
 }
-
 /* 📌 Specialized Green Submission Execution Button */
 .submit-btn {
     width: 100%; 
@@ -938,8 +881,6 @@ img[src="studyroom.png"] {
     background-color: #218838; /* Smooth dark-green hover focus effect */
 }
 
-
-
 .split-row {
     display: flex; 
     gap: 10px;      
@@ -952,7 +893,6 @@ img[src="studyroom.png"] {
     width: 100%;    
     margin-bottom: 0; 
 }
-
 
 
 
@@ -991,4 +931,45 @@ img[src="studyroom.png"] {
   box-sizing: border-box;
   background-color: #f8fafc;
   color: #333;
+}
+
+
+
+
+
+
+/* ========================================================
+   Dynamic Table Filter Bar
+   ======================================================== */
+.filter-bar {
+    background-color: white;
+    border-radius: 12px;
+    padding: 15px 20px;
+    width: 90%;
+    max-width: 1000px;
+    margin: 0 auto 15px auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 15px;
+    box-sizing: border-box;
+}
+
+.filter-bar select {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    outline: none;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .filter-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
