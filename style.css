@@ -801,10 +801,14 @@ img[src="studyroom.png"] {
 .split-form-inputs {
     display: flex;
     gap: 10px;
+  align-items: center;
 }
 
-.split-form-inputs select {
+.split-form-inputs select,
+.split-form-inputs input {
     flex: 1;
+    width: 100%;
+    margin-bottom: 0;
 }
 
 /* 📌 Form Input Fields Sizing Rules */
