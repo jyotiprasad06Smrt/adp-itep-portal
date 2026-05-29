@@ -106,8 +106,8 @@ safeBindClick('common-papers-btn', function() {
 
 
 
-
-
+// Global array to hold the downloaded papers for instant filtering
+window.currentLoadedPapers = [];
 
 // --- 📊 UPDATED: Dynamic Repository Fetch Engine ---
 async function openDynamicRepositoryView(categoryType = "Major") {
@@ -119,6 +119,12 @@ async function openDynamicRepositoryView(categoryType = "Major") {
     const titleElement = document.getElementById('dynamic-page-title');
     const tableBody = document.getElementById('dynamic-table-body');
 
+    // Reset dropdown filters to "All" whenever a new page is opened
+    const yearFilter = document.getElementById('filter-year');
+    const semFilter = document.getElementById('filter-sem');
+    if (yearFilter) yearFilter.value = 'all';
+    if (semFilter) semFilter.value = 'all';
+
     if (titleElement) {
         titleElement.textContent = currentViewState.stream === 'common' 
             ? "Common Question Papers" 
@@ -128,51 +134,104 @@ async function openDynamicRepositoryView(categoryType = "Major") {
     if (tableBody) tableBody.innerHTML = `<tr><td colspan="7">Querying resource servers...</td></tr>`;
 
     try {
-        // 📌 FIXED: Now safely forwards 'category' query filter to Flask endpoint
         const response = await fetch(`${BACKEND_URL}/api/get-papers?stream=${currentViewState.stream}&dept=${currentViewState.dept}&academicYear=${currentViewState.year}&category=${categoryType}`);
         const papers = await response.json();
         
         if (!tableBody) return;
-        tableBody.innerHTML = ""; 
+        
+        // Save the fetched papers into our global memory
+        window.currentLoadedPapers = papers;
 
-        if (papers.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7">No papers uploaded for this department yet.</td></tr>`;
-            return;
-        }
-
-        let count = 1;
-        papers.forEach(item => {
-            const tr = document.createElement('tr');
-            const isSessional = item.type === 'sessional';
-            // Make sure this specific line inside your loop matches this layout exactly:
-            const url = item.fileurl;
-            // 📌 FIXED: deleteLivePaper passing item.id safely now instead of subject code string
-            const sessionalLink = isSessional ? `
-                <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
-                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper(${item.id})">[Delete File]</span></div>
-            ` : `<span>N/A</span>`;
-
-            const endsemLink = !isSessional ? `
-                <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
-                <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper(${item.id})">[Delete File]</span></div>
-            ` : `<span>N/A</span>`;
-
-            tr.innerHTML = `
-                <td>${count++}</td>
-                <td>${item.academicyear}</td>
-                <td>${item.subject}</td>
-                <td>${item.code}</td>
-                <td>${item.semester}</td>
-                <td>${sessionalLink}</td>
-                <td>${endsemLink}</td>
-            `;
-            tableBody.appendChild(tr);
-        });
+        // Run the filter to render the table
+        window.renderFilteredPapers();
 
     } catch (err) {
         if (tableBody) tableBody.innerHTML = `<tr><td colspan="7" style="color:red;">Error fetching documents from backend server.</td></tr>`;
     }
 }
+
+// --- NEW FEATURE: Instant Filter Engine ---
+window.renderFilteredPapers = function() {
+    const tableBody = document.getElementById('dynamic-table-body');
+    if (!tableBody) return;
+
+    const selectedYear = document.getElementById('filter-year').value;
+    const selectedSem = document.getElementById('filter-sem').value;
+
+    // Filter the saved papers based on dropdown selections
+    const filteredPapers = window.currentLoadedPapers.filter(paper => {
+        const matchesYear = (selectedYear === 'all') || (paper.academicyear === selectedYear);
+        const matchesSem = (selectedSem === 'all') || (paper.semester.toString() === selectedSem);
+        return matchesYear && matchesSem;
+    });
+
+    tableBody.innerHTML = ""; 
+
+    if (filteredPapers.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7">No papers match your selected filters.</td></tr>`;
+        return;
+    }
+
+    let count = 1;
+    filteredPapers.forEach(item => {
+        const tr = document.createElement('tr');
+        const isSessional = item.type === 'sessional';
+        const url = item.fileurl;
+        
+        const sessionalLink = isSessional ? `
+            <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
+            <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper(${item.id})">[Delete File]</span></div>
+        ` : `<span>N/A</span>`;
+
+        const endsemLink = !isSessional ? `
+            <button class="view-btn" onclick="window.open('${url}', '_blank')">View</button>
+            <div style="margin-top: 4px;"><span style="color:#dc3545; font-size:11px; font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="window.deleteLivePaper(${item.id})">[Delete File]</span></div>
+        ` : `<span>N/A</span>`;
+
+        tr.innerHTML = `
+            <td>${count++}</td>
+            <td>${item.academicyear}</td>
+            <td>${item.subject}</td>
+            <td>${item.code}</td>
+            <td>${item.semester}</td>
+            <td>${sessionalLink}</td>
+            <td>${endsemLink}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+};
+
+// Bind the dropdowns so changing them triggers the filter instantly
+const fYear = document.getElementById('filter-year');
+if (fYear) fYear.addEventListener('change', window.renderFilteredPapers);
+
+const fSem = document.getElementById('filter-sem');
+if (fSem) fSem.addEventListener('change', window.renderFilteredPapers);
+
+
+safeBindClick('dynamic-back-btn', function() {
+    deactivateAllViews();
+    const currentTitle = document.getElementById('dynamic-page-title').textContent;
+    const isMinor = currentTitle.includes("Minor");
+
+    if (currentViewState.stream === 'bsc-bed') {
+        const targetMenu = document.getElementById(isMinor ? 'bsc-bed-minor' : 'bsc-bed-select-dept');
+        if (targetMenu) targetMenu.classList.remove(isMinor ? 'hidden10' : 'hidden6');
+    } else if (currentViewState.stream === 'ba-bed') {
+        const targetMenu = document.getElementById(isMinor ? 'ba-bed-minor' : 'ba-bed-select-dept');
+        if (targetMenu) targetMenu.classList.remove(isMinor ? 'hidden10' : 'hidden6');
+    } else if (currentViewState.stream === 'common') {
+        document.getElementById('main-website').classList.remove('hidden3');
+    }
+});
+
+
+
+
+
+
+
+
 
 safeBindClick('dynamic-back-btn', function() {
     deactivateAllViews();
