@@ -143,14 +143,15 @@ def upload_paper():
             subject_name = request.form.get('subject')
             subject_code = request.form.get('code')
             category = request.form.get('category')
-
+            uploaded_by_admin = request.form.get('adminUsername', 'Admin')
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
+               # 🛠️ FIXED: Columns and parameters matched to your table initialization rules
                 cursor.execute('''
-                    INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url, category))
+                    INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category, published_by, approved_by)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (academic_year, stream, dept, semester, paper_type, subject_name, subject_code, file_url, category, uploaded_by_admin, 'Direct Upload'))            
                 conn.commit()
             finally:
                 conn.close()
@@ -284,13 +285,16 @@ def approve_paper():
             return jsonify({"success": False, "message": "Paper record not found in queue."}), 404
 
         if action == 'approve':
-            # 📌 FIXED: Preserves the paper 'category' field data during approval transitions
+
+            reviewer_admin = data.get('adminUsername', 'System Peer')
+            # 🛠️ FIXED: Captures anonymous origin details alongside the active approving admin ID
             cursor.execute('''
-                INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (paper['academicyear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileurl'], paper.get('category', 'Major')))
-            
-            cursor.execute("DELETE FROM pending_papers WHERE id = %s", (paper_id,))
+                INSERT INTO papers (academicYear, stream, dept, semester, type, subject, code, fileUrl, category, published_by, approved_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (paper['academicyear'], paper['stream'], paper['dept'], paper['semester'], paper['type'], paper['subject'], paper['code'], paper['fileurl'], paper.get('category', 'Major'), 'Anonymous Contributor', reviewer_admin))
+           
+
+
             conn.commit()
             return jsonify({"success": True, "message": "Paper approved and published publicly!"}), 200
 
@@ -388,6 +392,13 @@ def approve_admin():
             ''', (user_profile["username"], user_profile["password"], user_profile["name"], user_profile["college"], user_profile["passyear"], user_profile["stream"], user_profile["subject"], user_profile["email"]))
             cursor.execute("DELETE FROM pending_approvals WHERE username = %s", (username_to_approve,))
             conn.commit()
+            email_body = (
+                f"Dear {user_profile['name']},\n\n"
+                f"We are glad to share that your pending admin approval request has been approved by the admin panel!\n"
+                f"You can now log in as an administrator using your provided username ('{user_profile['username']}') and password.\n\n"
+                f"Welcome aboard!\nBest regards,\nADP College ITEP System Infrastructure Panel"
+            )
+            dispatch_html_notification_email(user_profile['email'], "✨ ADP ITEP Portal - Administrative Credentials Verified!", email_body)
             return jsonify({"success": True, "message": f"Admin '{username_to_approve}' approved!"}), 200
             
         elif action == 'reject':
@@ -408,14 +419,13 @@ def approve_admin():
 
 
 
-
-
 def init_db():
     conn = get_db_connection()
     try:
         with conn:
             cursor = conn.cursor()
-            # 1. Admins
+            
+            # 1. Verified Institutional Administrators Table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS admins (
                     username TEXT PRIMARY KEY,
@@ -428,7 +438,15 @@ def init_db():
                     email TEXT
                 )
             ''')
-            # 2. Pending Approvals
+            # 🛠️ Add this inside init_db() to construct your collection table on server launch:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS system_feedbacks (
+                    id SERIAL PRIMARY KEY,
+                    message TEXT NOT NULL
+                )
+            ''')
+            
+            # 2. Pending Admin Registration Approvals Queue
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS pending_approvals (
                     username TEXT PRIMARY KEY,
@@ -441,7 +459,8 @@ def init_db():
                     email TEXT
                 )
             ''')
-            # 3. Papers (PostgreSQL uses SERIAL for auto-increment)
+            
+            # 3. Main Published Papers Archive Table (With Audit Tracking Fields)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS papers (
                     id SERIAL PRIMARY KEY,
@@ -453,10 +472,20 @@ def init_db():
                     subject TEXT,
                     code TEXT,
                     fileUrl TEXT,
-                    category TEXT
+                    category TEXT,
+                    published_by TEXT DEFAULT 'Admin',
+                    approved_by TEXT DEFAULT 'System Core'
                 )
             ''')
-            # 4. Pending Papers
+            
+            # Dynamic migration helper to patch existing old tables without data loss
+            try:
+                cursor.execute("ALTER TABLE papers ADD COLUMN IF NOT EXISTS published_by TEXT DEFAULT 'Admin';")
+                cursor.execute("ALTER TABLE papers ADD COLUMN IF NOT EXISTS approved_by TEXT DEFAULT 'System Core';")
+            except Exception:
+                pass
+
+            # 4. Anonymous/User Question Paper Contributions Queue
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS pending_papers (
                     id SERIAL PRIMARY KEY,
@@ -471,11 +500,11 @@ def init_db():
                     category TEXT
                 )
             ''')
+
+           
             conn.commit()
     finally:
         conn.close()
-
-
 
 
 
@@ -547,12 +576,297 @@ def delete_paper():
     finally:
         conn.close()
 
+# ============================================================================
+# 🆕 BACKEND ENGINE EXTENSIONS: MANAGERS, FEEDBACK, & ADMINISTRATIVE SECURITY
+# ============================================================================
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# ⚙️ Helper: Universal Mail Distribution Engine wrapping your Google Apps Script
+def dispatch_html_notification_email(target_email, subject_title, dynamic_body_content):
+    google_script_url = "https://script.google.com/macros/s/AKfycbzZ_UYC3WrVOh1IWkdjVuunnIWYDV37_cn7vErnUcwin2VPqsyLK02amH87I5RQjhAHkQ/exec"
+    payload = {
+        "email": target_email,
+        "subject": subject_title,
+        "body": dynamic_body_content
+    }
+    try:
+        response = requests.post(google_script_url, json=payload, timeout=10)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"⚠️ Email dispatch exception layer caught: {e}")
+        return False
+
+
+# --- 🔐 SECTION: SECURITY UPGRADES & PASSWORD MANAGEMENT CONTROLLERS ---
+
+@app.route('/api/admin-request-password-otp', methods=['POST'])
+def admin_request_password_otp():
+    data = request.get_json() or {}
+    username = data.get('username', '').strip()
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT email FROM admins WHERE username = %s", (username,))
+        row = cursor.fetchone()
+    finally:
+        conn.close()
+        
+    if not row:
+        return jsonify({"success": False, "message": "Administrative profile lookups failed empty."}), 404
+        
+    email = row['email']
+    otp_code = str(random.randint(100000, 999999))
+    OTP_STORE[f"PWD_CHG_{username}"] = otp_code
+    
+    mail_template = (
+        f"Security Alert Notice:\n\n"
+        f"A password modification request was triggered for account identifier: '{username}'.\n"
+        f"Your verification authorization code is: {otp_code}\n\n"
+        f"If you did not initiate this request, log into your admin console to check your security log history."
+    )
+    
+    if dispatch_html_notification_email(email, "🔒 ADP ITEP Portal - Password Update Verification Token", mail_template):
+        return jsonify({"success": True, "message": "OTP successfully routed onto verified mailbox array."}), 200
+    return jsonify({"success": False, "message": "Communications mail delivery server error."}), 500
+
+
+@app.route('/api/admin-commit-password-change', methods=['POST'])
+def admin_commit_password_change():
+    data = request.get_json() or {}
+    username = data.get('username', '').strip()
+    old_pwd = data.get('old_password')
+    new_pwd = data.get('new_password')
+    user_otp = data.get('otp', '').strip()
+
+    otp_key = f"PWD_CHG_{username}"
+    if otp_key not in OTP_STORE or OTP_STORE[otp_key] != user_otp:
+        return jsonify({"success": False, "message": "Security Verification Failed: Code token invalid or expired."}), 400
+
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT password, email FROM admins WHERE username = %s", (username,))
+        row = cursor.fetchone()
+        
+        if not row:
+            return jsonify({"success": False, "message": "Context Mismatch: Admin profile index failed empty."}), 404
+            
+        if not check_password_hash(row['password'], old_pwd):
+            return jsonify({"success": False, "message": "Authentication Denied: Existing password validation failed."}), 401
+
+        hashed_new_pwd = generate_password_hash(new_pwd)
+        cursor.execute("UPDATE admins SET password = %s WHERE username = %s", (hashed_new_pwd, username))
+        conn.commit()
+        
+        # Clear transactional verification cache space safely
+        del OTP_STORE[otp_key]
+        
+        success_body = f"Success Notification:\n\nYour account profile password for identifier '{username}' was updated successfully.\nYou can now use your newly configured credentials during future authentication requests."
+        dispatch_html_notification_email(row['email'], "✔ ADP ITEP Portal - Security Profile Updated Successfully", success_body)
+        
+        return jsonify({"success": True, "message": "Security profile modifications written live into data arrays."}), 200
+    finally:
+        conn.close()
+
+
+# --- 📨 SECTION: ANONYMOUS USER FEEDBACK PROCESSORS ---
+
+@app.route('/api/manager-login', methods=['POST'])
+def manager_login():
+    data = request.get_json() or {}
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+    
+    # 🔒 EXACT DUAL CREDENTIALS POLICY MATRIX
+    VALID_MANAGERS = {
+        "jyotiprasad": "jps2006",
+        "PR_2007": "Pintu@2026"
+    }
+    
+    if username in VALID_MANAGERS and VALID_MANAGERS[username] == password:
+        return jsonify({"success": True, "message": "System Manager Authorization Confirmed."}), 200
+    return jsonify({"success": False, "message": "Invalid Administrative Core Credentials."}), 401
+
+
+@app.route('/api/manager-get-all-papers', methods=['GET'])
+def manager_get_all_papers():
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, academicYear as academicyear, stream, dept, semester, type, subject, code, fileUrl as fileurl, published_by, approved_by FROM papers ORDER BY id DESC")
+        rows = cursor.fetchall()
+        return jsonify([dict(r) for r in rows]), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/manager-modify-paper', methods=['POST'])
+def manager_modify_paper():
+    data = request.get_json() or {}
+    mgr_pwd = data.get('manager_password')
+    
+    # Challenge check: Verify authorization signature token matching active master keys
+    if mgr_pwd not in ["jps2006", "Pintu@2026"]:
+        return jsonify({"success": False, "message": "Manager security re-authentication challenge failed."}), 403
+        
+    paper_id = data.get('id')
+    year = data.get('academicYear')
+    subject = data.get('subject')
+    code = data.get('code')
+    url = data.get('fileUrl')
+
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE papers 
+            SET academicYear = %s, subject = %s, code = %s, fileUrl = %s
+            WHERE id = %s
+        ''', (year, subject, code, url, paper_id))
+        conn.commit()
+        return jsonify({"success": True, "message": "Paper records edited successfully."}), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/manager-delete-paper', methods=['POST'])
+def manager_delete_paper():
+    data = request.get_json() or {}
+    mgr_pwd = data.get('manager_password')
+    
+    if mgr_pwd not in ["jps2006", "Pintu@2026"]:
+        return jsonify({"success": False, "message": "Security interceptor note: Incorrect Manager password challenge."}), 403
+        
+    paper_id = data.get('id')
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT fileUrl FROM papers WHERE id = %s", (paper_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "message": "Target document tracking reference not located."}), 404
+            
+        # Wipe background binaries off Cloudinary media space safely
+        try:
+            url_parts = row['fileurl'].split('/')
+            for folder in ['itep_papers', 'itep_pending']:
+                if folder in url_parts:
+                    idx = url_parts.index(folder)
+                    pid = '/'.join(url_parts[idx:]).rsplit('.', 1)[0]
+                    cloudinary.uploader.destroy(pid, resource_type="image")
+        except Exception:
+            pass
+
+        cursor.execute("DELETE FROM papers WHERE id = %s", (paper_id,))
+        conn.commit()
+        return jsonify({"success": True, "message": "Record cleared from transaction loop pipelines."}), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/manager-get-admins', methods=['GET'])
+def manager_get_admins():
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        # Evaluates accountability metrics on the fly using mapping queries
+        cursor.execute('''
+            SELECT username, name, college, passYear as passyear, stream, subject, email,
+            (SELECT COUNT(*) FROM papers WHERE published_by = username OR published_by = name) as papers_published_count,
+            (SELECT COUNT(*) FROM papers WHERE approved_by = username OR approved_by = name) as papers_approved_count
+            FROM admins ORDER BY name ASC
+        ''')
+        rows = cursor.fetchall()
+        return jsonify([dict(r) for r in rows]), 200
+    finally:
+        conn.close()
 
 
 
 
+@app.route('/api/submit-feedback', methods=['POST'])
+def submit_feedback():
+    data = request.get_json() or {}
+    message_val = data.get('message', '').strip()
+    if not message_val:
+        return jsonify({"success": False, "message": "Empty feedback parameter refused."}), 400
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO system_feedbacks (message) VALUES (%s)", (message_val,))
+        conn.commit()
+        return jsonify({"success": True, "message": "Feedback logged successfully."}), 201
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
 
-init_db()
+@app.route('/api/manager-get-admin-contributions', methods=['GET'])
+def manager_get_admin_contributions():
+    username = request.args.get('username')
+    action_type = request.args.get('type', 'published')
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        if action_type == 'published':
+            cursor.execute("SELECT subject, code, semester, academicYear as academicyear FROM papers WHERE published_by = %s", (username,))
+        else:
+            cursor.execute("SELECT subject, code, semester, academicYear as academicyear FROM papers WHERE approved_by = %s", (username,))
+        rows = cursor.fetchall()
+        return jsonify([dict(r) for r in rows]), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/manager-remove-admin', methods=['POST'])
+def manager_remove_admin():
+    data = request.get_json() or {}
+    username = data.get('username')
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT email, name FROM admins WHERE username = %s", (username,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"success": False, "message": "Target administrator definitions mapping failed empty."}), 404
+            
+        cursor.execute("DELETE FROM admins WHERE username = %s", (username,))
+        conn.commit()
+        
+        # Dispatch notification removal trace warning email to revoked user
+        revocation_notice = (
+            f"Administrative Clearance Levels Altered:\n\n"
+            f"Hello {row['name']},\n"
+            f"This email serves as an automated verification notice informing you that your administrative access privileges "
+            f"for the ADP ITEP portal platform have been officially revoked by the system Manager.\n\n"
+            f"If you suspect this action occurred due to an operational system calculation error, coordinate with your manager leads."
+        )
+        dispatch_html_notification_email(row['email'], "🚨 ADP ITEP Portal - Administrative Access Level Revoked", revocation_notice)
+        
+        return jsonify({"success": True, "message": "Administrator record cleared from tracking arrays successfully."}), 200
+    finally:
+        conn.close()
+
+
+@app.route('/api/manager-get-feedback', methods=['GET'])
+def manager_get_feedback():
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, message FROM system_feedbacks ORDER BY id DESC")
+        rows = cursor.fetchall()
+        return jsonify([dict(r) for r in rows]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+
+
 # 📌 THIS REMAINS AT THE ABSOLUTE BOTTOM
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True, port=5000)
