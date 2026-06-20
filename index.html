@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,25 +94,53 @@
 
 
 
-
 <div id="login-interface" class="hidden2"> 
-        <img  width="1540" src="studyroom.png">
-        <button id="bck1" class="back-button">← Go Back</button>
+    <img width="1540" src="studyroom.png">
+    <button id="bck1" class="back-button">← Go Back</button>
 
-        <div  class="text-overlay">
-              <h1 class="heading2" >Please choose one of the following</h1>
-                <div class="button-row" style="margin-bottom: 15px;">
-                    <button id="main-website-btn" class="special">MAIN WEBSITE</button>
-                    <button id="admin-register-btn" class="special">REGISTER as ADMIN</button>
-                    <button id="admin-login-btn" class="special">LOGIN as ADMIN</button>
-                </div>
-                <div class="button-row">
-                    <button id="contribute-common-btn" class="special">Contribute a common paper</button>
-                    <button id="contribute-btn" class="special">Contribute a previous year paper</button>
-                </div>
+    <div class="text-overlay">
+        <h1 class="heading2">Please choose one of the following</h1>
+        
+        <div class="button-row" id="main-menu-buttons">
+            <button id="main-website-btn" class="special">MAIN WEBSITE</button>
+            <button id="admin-page-hub-btn" class="special">ADMIN PAGE</button>
+            <button id="manager-login-btn" class="special">MANAGER LOGIN</button>
+            <button id="contribution-page-hub-btn" class="special">CONTRIBUTION PAGE</button>
+            <button id="submit-feedback-btn" class="special">FEEDBACK/QUERY</button>
+        </div>
+
+        <div class="button-row hidden2" id="admin-sub-menu" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 20px;">
+            <button id="admin-login-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">LOGIN as ADMIN</button>
+            <button id="admin-register-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">REGISTER AS ADMIN</button>
+            <button id="cancel-admin-sub-btn" class="special" style="background-color: #dc3545; color: white;">← Back to Menu</button>
+        </div>
+
+        <div class="button-row hidden2" id="contribution-sub-menu" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 20px;">
+            <button id="contribute-common-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">Contribute a common paper</button>
+            <button id="contribute-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">Contribute a Previous Year Paper</button>
+            <button id="cancel-contrib-sub-btn" class="special" style="background-color: #dc3545; color: white;">← Back to Menu</button>
         </div>
     </div>
+</div>
 
+
+
+<div id="feedback-submission-page" class="hidden2">
+    <img src="studyroom.png" width="1540" alt="Background Section">
+    <button id="bck-feedback" class="back-button">← Go Back</button>
+    <div class="text-overlay">
+        <h1 class="heading2">Submit Feedback / Report a Problem</h1>
+        <div class="table-background contribution-card">
+            <form id="user-feedback-form" class="manager-form-layout">
+                <div class="input-group">
+                    <label for="feedback-message" class="field-label">Describe your problem or feedback in detail:</label>
+                    <textarea id="feedback-message" rows="6" placeholder="Type your message here..." required style="width:100%; padding:12px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box; background-color:#f8fafc; font-family:sans-serif; resize:none;"></textarea>
+                </div>
+                <button type="submit" class="special manager-submit-btn">Submit Statement</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 
@@ -458,7 +487,6 @@
                 <input type="password" id="admin-password" placeholder="Enter Your Password" required>
                 <br>
 
-                <p id="login-error-msg" style="color: red; font-size: 14px; display: none; margin: 0; text-align: left;"></p><br>
 
                 <button type="submit" class="special">Verify and Login</button>
 
@@ -487,7 +515,46 @@
             <button id="nav-pending-common" class="special">See Pending Common Papers</button>
             <button id="nav-upload-paper" class="special">Publish a Paper</button>
             <button id="nav-upload-common" class="special">Publish a Common Paper</button>
+            <button id="nav-change-password">Change Password</button>
         </div>
+
+
+
+
+
+        <div id="section-change-password" class="dashboard-column-card card-centered-constraint">
+            <h3 class="upload-header-title text-sans-left">Modify Account Password</h3>
+            <form id="admin-change-password-form" class="vertical-form-layout">
+                
+                <div class="form-row-group">
+                    <label class="form-field-label">Current Password</label>
+                    <input type="password" id="chg-old-password" placeholder="Enter Current Password" required class="form-input-field">
+                </div>
+
+                <div class="form-row-group">
+                    <label class="form-field-label">New Password</label>
+                    <input type="password" id="chg-new-password" placeholder="Enter New Password" required class="form-input-field">
+                </div>
+
+                <div class="form-row-group">
+                    <label class="form-field-label">Confirm New Password</label>
+                    <input type="password" id="chg-confirm-password" placeholder="Confirm New Password" required class="form-input-field">
+                </div>
+                
+                <button type="button" id="send-pwd-otp-btn" class="reg-action-btn form-trigger-btn">Step 1: Request Security OTP</button>
+                
+                <div id="pwd-otp-wrapper" class="form-row-group hidden-otp-input">
+                    <label class="form-field-label">Enter 6-Digit OTP Code</label>
+                    <input type="text" id="chg-otp-input" placeholder="Verification Code" class="form-input-field">
+                </div>
+                
+                <button type="submit" id="submit-pwd-change-btn" class="special-full-width-bold-btn form-submit-disabled" disabled>Step 2: Commit Password Rewrite</button>
+            </form>
+        </div>
+
+
+
+
         
         <div id="section-pending-admins" class="dashboard-column-card" style="display: none; width: 100%; max-width: 900px; margin: 0 auto;">
             <h3 class="approval-header-title">Pending Admin Approvals</h3>
@@ -739,33 +806,175 @@
 
 
 
+
+
+
+
+
+
     
 
 
+<div id="manager-login-page" class="hidden2">
+    <img src="studyroom.png" width="1540" alt="Background Section">
+    <button id="bck-manager-login" class="back-button">← Go Back</button>
+    
+    <div class="text-overlay">
+        <h1 class="heading2">Manager Command Portal</h1>
+        
+        <div class="table-background manager-login-card">
+            <form id="manager-login-form" class="manager-form-layout">
+                <div class="input-group">
+                    <label for="mgr-username" class="field-label">Manager Username</label>
+                    <input type="text" id="mgr-username" placeholder="Username" required class="manager-input">
+                </div>
+                
+                <div class="input-group">
+                    <label for="mgr-password" class="field-label">Manager Security Password</label>
+                    <input type="password" id="mgr-password" placeholder="••••••••" required class="manager-input">
+                </div>
+                
+                <button type="submit" class="special manager-submit-btn">Authenticate & Unlock</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 
 
 
 
+<div id="manager-dashboard-view" class="hidden2 manager-dashboard-fullscreen">
+    <img src="studyroom.png" width="1540" alt="Background Section">
+    <button id="bck-manager-dashboard" class="back-button">← Log Out</button>
+    
+    <div class="text-overlay dashboard-viewport-adjust">
+        <h1 class="heading2 dashboard-main-title">System Manager Control Center</h1>
+        
+        <div class="button-row management-tabs-row">
+            <button id="mgr-nav-edit-papers" class="special mgr-tab-btn tab-blue">Edit Published Papers</button>
+            <button id="mgr-nav-view-admins" class="special mgr-tab-btn tab-green">View Active Admins</button>
+            <button id="mgr-nav-view-feedback" class="special mgr-tab-btn tab-orange">Read System Feedbacks</button>
+        </div>
+
+        <div id="mgr-section-view-feedback" class="dashboard-column-card mgr-panel-card card-width-narrow">
+            <h3 class="upload-header-title text-sans-left panel-title-decor">Global User Submission Messages</h3>
+            <div class="approval-table-scroll-wrapper feedback-cards-scroll-wrapper" id="mgr-feedback-cards-container">
+            </div>
+        </div>
+
+        <div id="mgr-section-edit-papers" class="dashboard-column-card mgr-panel-card">
+            <h3 class="upload-header-title text-sans-left panel-title-decor">Global Archive Search Grid</h3>
+            
+            <div class="filter-bar manager-inline-filters">
+                <select id="mgr-filter-year" class="manager-filter-select">
+                    <option value="all">All Academic Years</option>
+                    <option value="2025-26">2025-26</option>
+                    <option value="2026-27">2026-27</option>
+                    <option value="2027-28">2027-28</option>
+                    <option value="2028-29">2028-29</option>
+                    <option value="2029-30">2029-30</option>
+                </select>
+                <select id="mgr-filter-sem" class="manager-filter-select">
+                    <option value="all">All Semesters</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                </select>
+            </div>
+            
+            <div class="approval-table-scroll-wrapper manager-table-height">
+                <table class="approval-data-table manager-flat-table">
+                    <thead>
+                        <tr class="table-header-row">
+                            <th>Sl.</th>
+                            <th>Year</th>
+                            <th class="text-left-align">Subject Info</th>
+                            <th>Code</th>
+                            <th>Sem</th>
+                            <th class="text-right-align">Management Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mgr-published-papers-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="mgr-section-view-admins" class="dashboard-column-card mgr-panel-card card-width-medium">
+            <h3 class="upload-header-title text-sans-left panel-title-decor">Verified Institutional Administrators</h3>
+            <div class="approval-table-scroll-wrapper manager-table-height">
+                <table class="approval-data-table manager-flat-table">
+                    <thead>
+                        <tr class="table-header-row">
+                            <th class="text-left-align">Name</th>
+                            <th>Admin ID</th>
+                            <th class="text-left-align">Email Location</th>
+                            <th class="text-left-align">Specialization</th>
+                            <th class="text-right-align">Control Directives</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mgr-active-admins-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+</div>
 
 
 
 
-
-
-
-
-
+<div id="mgr-edit-paper-modal" class="mgr-modal-backdrop">
+    <div class="mgr-modal-card">
+        <span class="mgr-modal-close-btn" onclick="document.getElementById('mgr-edit-paper-modal').style.display='none'">&times;</span>
+        <h3 class="mgr-modal-title">📝 Edit Published Paper Data</h3>
+        
+        <form id="mgr-edit-paper-form" class="mgr-modal-form">
+            <input type="hidden" id="mgr-edit-id">
+            
+            <div class="mgr-modal-field-group">
+                <label>Academic Year</label>
+                <input type="text" id="mgr-edit-year" required>
+            </div>
+            
+            <div class="mgr-modal-field-group">
+                <label>Subject Title</label>
+                <input type="text" id="mgr-edit-subject" required>
+            </div>
+            
+            <div class="mgr-modal-field-group">
+                <label>Subject Code</label>
+                <input type="text" id="mgr-edit-code" required>
+            </div>
+            
+            <div class="mgr-modal-field-group">
+                <label>Document Resource PDF Link</label>
+                <input type="url" id="mgr-edit-url" required>
+            </div>
+            
+            <div class="mgr-modal-field-group alert-group-spacing">
+                <label class="mgr-alert-label">⚠️ Confirm Manager Security Password</label>
+                <input type="password" id="mgr-edit-auth-pass" placeholder="Enter password to apply modifications" required class="mgr-alert-input">
+            </div>
+            
+            <button type="submit" class="special submit-btn mgr-modal-commit-btn">Save and Commit Changes</button>
+        </form>
+    </div>
+</div>
 
 
 
 
     <img src="priyaranjan_clg_logo.jpeg" alt="ADP college" class="logo">
-
-
-
-
 
 
 
