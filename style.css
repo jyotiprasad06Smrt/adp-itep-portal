@@ -242,8 +242,10 @@ td, th {
 .left-panel { flex: 1.2; min-height: 400px; }
 .right-panel { flex: 1; max-width: 520px; }
 .approval-table-scroll-wrapper {
-  max-height: 450px; 
+  max-height: 450px;
+  overflow-x : auto;
   overflow-y: auto;
+  
   width: 100%;
   margin-top: 15px;
 }
@@ -995,15 +997,15 @@ img[src="studyroom.png"] {
 .mgr-panel-card {
     display: none;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1450px;
     margin: 0 auto;
     background-color: rgba(255, 255, 255, 0.97) !important;
     padding: 25px !important;
     border-radius: 12px !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
 }
-.card-width-medium { max-width: 1000px; }
-.card-width-narrow { max-width: 850px; }
+.card-width-medium { max-width: 1350px; }
+.card-width-narrow { max-width: 950px; }
 .panel-title-decor {
     font-size: 20px !important;
     font-weight: bold !important;
