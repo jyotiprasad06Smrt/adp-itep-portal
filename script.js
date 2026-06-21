@@ -953,7 +953,7 @@ function hideExtendedViews() {
         'mgr-section-edit-papers',
         'mgr-section-view-admins',
         'mgr-section-view-feedback',
-         'mgr-edit-paper-modal'
+        'mgr-edit-paper-modal'
     ];
     panels.forEach(id => {
         const el = document.getElementById(id);
@@ -1157,6 +1157,8 @@ function clearAllManagerTabsActiveStates() {
     document.getElementById('mgr-section-view-feedback').style.display = 'none';
 }
 
+
+safeBindClick('close-mgr-edit-modal', () => { document.getElementById('mgr-edit-paper-modal').style.display = 'none'; });
 safeBindClick('mgr-nav-edit-papers', () => { clearAllManagerTabsActiveStates(); document.getElementById('mgr-section-edit-papers').style.display = 'block'; mgrFetchAndRenderPapers(); });
 safeBindClick('mgr-nav-view-admins', () => { clearAllManagerTabsActiveStates(); document.getElementById('mgr-section-view-admins').style.display = 'block'; mgrFetchAndRenderAdmins(); });
 window.mgrMasterPapersCache = [];
@@ -1192,10 +1194,12 @@ window.mgrRenderFilteredMasterPapers = function() {
     if(!tbody) return;  
     const yFilter = document.getElementById('mgr-filter-year').value;
     const sFilter = document.getElementById('mgr-filter-sem').value;
+    const dFilter = document.getElementById('mgr-filter-dept').value;
     const targetedRows = window.mgrMasterPapersCache.filter(p => {
         const matchesY = (yFilter === 'all') || (p.academicyear === yFilter);
         const matchesS = (sFilter === 'all') || (p.semester.toString() === sFilter);
-        return matchesY && matchesS;
+        const matchesD = (dFilter === 'all') || (p.dept.toLowerCase() === dFilter); // <--- ADD THIS LINE!
+        return matchesY && matchesS && matchesD ;
     });
     tbody.innerHTML = "";
     if(targetedRows.length === 0) {
@@ -1267,6 +1271,8 @@ window.mgrRenderFilteredMasterPapers = function() {
 
 document.getElementById('mgr-filter-year').addEventListener('change', window.mgrRenderFilteredMasterPapers);
 document.getElementById('mgr-filter-sem').addEventListener('change', window.mgrRenderFilteredMasterPapers);
+document.getElementById('mgr-filter-dept').addEventListener('change', window.mgrRenderFilteredMasterPapers);
+
 
 window.mgrTriggerDetailsPopup = function(p) {
     alert(`📄 QUESTION PAPER DETAILS CARD\n------------------------------------\nSubject Name: ${p.subject}\nSubject Code: ${p.code}\nAcademic Year: ${p.academicyear}\nSemester Track: Semester ${p.semester}\nStream Layout: ${p.stream.toUpperCase()}\nDepartment: ${p.dept.toUpperCase()}\n\n☁️ CLOUD MANAGEMENT AUDITING MARKS\n------------------------------------\nDirect Resource URL: ${p.fileurl}\nPublished/Uploaded By: ${p.published_by || 'Original Master Administrator'}\nApproved/Reviewed By: ${p.approved_by || 'Core System Automated Verification'}`);
@@ -1278,7 +1284,6 @@ window.mgrTriggerEditModal = function(p) {
     document.getElementById('mgr-edit-subject').value = p.subject;
     document.getElementById('mgr-edit-code').value = p.code;
     document.getElementById('mgr-edit-url').value = p.fileurl;
-    document.getElementById('mgr-edit-auth-pass').value = "";
     document.getElementById('mgr-edit-paper-modal').style.display = 'flex';
 };
 
@@ -1290,7 +1295,6 @@ document.getElementById('mgr-edit-paper-form').addEventListener('submit', async 
         subject: document.getElementById('mgr-edit-subject').value.trim(),
         code: document.getElementById('mgr-edit-code').value.trim(),
         fileUrl: document.getElementById('mgr-edit-url').value.trim(),
-        manager_password: document.getElementById('mgr-edit-auth-pass').value
     };
     try {
         const res = await fetch(`${BACKEND_URL}/api/manager-modify-paper`, {
@@ -1372,9 +1376,9 @@ async function mgrFetchAndRenderAdmins() {
             tdSpec.className = "text-left-align";
             tdSpec.textContent = `${a.subject} (${a.stream.toUpperCase()})`;
             const tdActions = document.createElement('td');
-            tdActions.className = "text-right-align";
             const btnGroup = document.createElement('div');
-            btnGroup.className = "moderation-btn-group mgr-right-justify";
+            btnGroup.className = "moderation-btn-group";
+            btnGroup.style.justifyContent = "center"; // <-- Centers the buttons!
             const btnDetails = document.createElement('button');
             btnDetails.className = "view-btn btn-review";
             btnDetails.textContent = "View admin details";
