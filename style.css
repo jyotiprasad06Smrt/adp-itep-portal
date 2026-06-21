@@ -1169,3 +1169,43 @@ img[src="studyroom.png"] {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* 🏛️ OFFICIAL FEEDBACK SECTION STYLES */
+.feedback-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 25px 0 20px 0;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.feedback-divider::before,
+.feedback-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #cbd5e1;
+}
+.feedback-divider span {
+    padding: 0 15px;
+}
+.official-link-btn {
+    display: block !important;
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    border: 2px solid #1e293b !important;
+    font-weight: bold !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    border-radius: 8px !important;
+    padding: 14px !important;
+    font-size: 15px !important;
+}
+.official-link-btn:hover {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(30, 41, 59, 0.2) !important;
+}
