@@ -14,7 +14,6 @@ function safeBindClick(id, callback) {
         el.addEventListener('click', callback);
     }
 }
-
 function deactivateAllViews() {
     const screens = [
         { id: 'before-start', cls: 'hidden2' },
