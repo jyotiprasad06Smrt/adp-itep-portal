@@ -336,6 +336,7 @@ if (loginForm) {
             });
             const result = await response.json();
             if (result.success) {
+                window.currentActiveAdmin = adminIdInput; // <-- ADD THIS LINE 
                 alert(result.message);
                 deactivateAllViews();
                 document.getElementById('upload-dashboard').classList.remove('hidden9');
@@ -926,6 +927,7 @@ function showAdminTab(targetSection) {
     if (secPendingCommon) secPendingCommon.style.display = 'none';
     if (secUploadPaper) secUploadPaper.style.display = 'none';
     if (secUploadCommon) secUploadCommon.style.display = 'none';
+    if (document.getElementById('section-change-password')) document.getElementById('section-change-password').style.display = 'none';
     if (targetSection) {
         targetSection.style.display = 'block';
     }
@@ -974,7 +976,7 @@ safeBindClick('nav-change-password', () => {
 });
 
 safeBindClick('send-pwd-otp-btn', async () => {
-    const currentAdminUser = document.getElementById('admin-id').value.trim();
+    const currentAdminUser = window.currentActiveAdmin; // <-- UPDATE THIS LINE
     if(!currentAdminUser) { alert("Session identity Context Lost. Please login again."); return; }
     document.getElementById('send-pwd-otp-btn').textContent = "Requesting Secure Token...";
     try {
@@ -1003,7 +1005,7 @@ const chgPwdForm = document.getElementById('admin-change-password-form');
 if(chgPwdForm) {
     chgPwdForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const currentAdminUser = document.getElementById('admin-id').value.trim();
+        const currentAdminUser = window.currentActiveAdmin; // <-- UPDATE THIS LINE
         const oldPass = document.getElementById('chg-old-password').value;
         const newPass = document.getElementById('chg-new-password').value;
         const confirmPass = document.getElementById('chg-confirm-password').value;
@@ -1280,7 +1282,8 @@ window.mgrTriggerDetailsPopup = function(p) {
 
 window.mgrTriggerEditModal = function(p) {
     document.getElementById('mgr-edit-id').value = p.id;
-    document.getElementById('mgr-edit-year').value = p.academicyear;
+    document.getElementById('mgr-edit-year').value = p.academicyear;
+    document.getElementById('mgr-edit-sem').value = p.semester; // <-- ADD THIS LINE
     document.getElementById('mgr-edit-subject').value = p.subject;
     document.getElementById('mgr-edit-code').value = p.code;
     document.getElementById('mgr-edit-url').value = p.fileurl;
@@ -1292,6 +1295,7 @@ document.getElementById('mgr-edit-paper-form').addEventListener('submit', async 
     const payload = {
         id: document.getElementById('mgr-edit-id').value,
         academicYear: document.getElementById('mgr-edit-year').value.trim(),
+        semester: document.getElementById('mgr-edit-sem').value, // <-- ADD THIS LINE
         subject: document.getElementById('mgr-edit-subject').value.trim(),
         code: document.getElementById('mgr-edit-code').value.trim(),
         fileUrl: document.getElementById('mgr-edit-url').value.trim(),
