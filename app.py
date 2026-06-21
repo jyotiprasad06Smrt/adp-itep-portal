@@ -1,3 +1,4 @@
+
 import os
 import random
 import requests
@@ -709,6 +710,7 @@ def manager_modify_paper():
    
     paper_id = data.get('id')
     year = data.get('academicYear')
+    semester = data.get('semester') # <-- Extracting the new parameter
     subject = data.get('subject')
     code = data.get('code')
     url = data.get('fileUrl')
@@ -718,9 +720,9 @@ def manager_modify_paper():
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE papers 
-            SET academicYear = %s, subject = %s, code = %s, fileUrl = %s
+            SET academicYear = %s, semester = %s, subject = %s, code = %s, fileUrl = %s
             WHERE id = %s
-        ''', (year, subject, code, url, paper_id))
+        ''', (year, semester, subject, code, url, paper_id))
         conn.commit()
         return jsonify({"success": True, "message": "Paper records edited successfully."}), 200
     finally:
