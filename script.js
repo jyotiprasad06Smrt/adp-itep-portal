@@ -952,7 +952,8 @@ function hideExtendedViews() {
         'section-change-password',
         'mgr-section-edit-papers',
         'mgr-section-view-admins',
-        'mgr-section-view-feedback'
+        'mgr-section-view-feedback',
+         'mgr-edit-paper-modal'
     ];
     panels.forEach(id => {
         const el = document.getElementById(id);
