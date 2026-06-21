@@ -44,6 +44,36 @@ td, th {
   text-align: center;
   vertical-align: middle;
 }
+
+.hati1{
+  background-color: #f00b22;
+  padding: 16px;
+  margin: 0;
+  border-radius: 4px;
+  text-align: center;
+  vertical-align: middle;
+  color: white;
+}
+.hati2{
+  background-color: #f8fafc; 
+  border: 1px solid green;
+  padding: 16px;
+  margin: 0;
+  border-radius: 4px;
+  text-align: center;
+  vertical-align: middle;
+  color: #1e293b;
+}
+.hati3{
+  width:100%;
+  padding:12px; 
+  border-radius:8px; 
+  border:1px solid #cbd5e1;
+   box-sizing:border-box;
+   background-color:#f8fafc; 
+   font-family:sans-serif;
+    resize:none;
+}
 .view-btn {
   background-color: white;
   padding: 8px 16px;
