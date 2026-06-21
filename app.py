@@ -864,9 +864,14 @@ def manager_get_feedback():
     finally:
         conn.close()
 
-  
+
+try:
+    init_db()
+except Exception as e:
+    print(f"Database init failed: {e}")
+
+
 
 # 📌 THIS REMAINS AT THE ABSOLUTE BOTTOM
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True, port=5000)
