@@ -706,10 +706,7 @@ def manager_modify_paper():
     data = request.get_json() or {}
     mgr_pwd = data.get('manager_password')
     
-    # Challenge check: Verify authorization signature token matching active master keys
-    if mgr_pwd not in ["jps2006", "Pintu@2026"]:
-        return jsonify({"success": False, "message": "Manager security re-authentication challenge failed."}), 403
-        
+   
     paper_id = data.get('id')
     year = data.get('academicYear')
     subject = data.get('subject')
