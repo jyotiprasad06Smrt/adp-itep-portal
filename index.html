@@ -83,7 +83,7 @@
                     <p class="dev-email">✉ priyaranjanpradhan15@gmail.com</p>
                     
                     <div class="dev-socials">
-                        <a href="https://www.instagram.com/_priyaranjan07_?igsh=MXdna2t1eGZhYjVjMw==" target="_blank" class="social-link insta">📸 Instagram</a>
+                        <a href="https://www.instagram.com/priyaranjan07_?igsh=MXdna2t1eGZhYjVjMw==" target="_blank" class="social-link insta">📸 Instagram</a>
                     </div>
                 </div>
             </div>
@@ -886,6 +886,22 @@
                     <option value="7">Semester 7</option>
                     <option value="8">Semester 8</option>
                 </select>
+                <select id="mgr-filter-dept" class="manager-filter-select">
+                    <option value="all">All Departments</option>
+                    <option value="common">Common Papers</option>
+                    <option value="physics">Physics</option>
+                    <option value="chemistry">Chemistry</option>
+                    <option value="mathematics">Mathematics</option>
+                    <option value="zoology">Zoology</option>
+                    <option value="botany">Botany</option>
+                    <option value="history">History</option>
+                    <option value="geography">Geography</option>
+                    <option value="political-science">Political Science</option>
+                    <option value="economics">Economics</option>
+                    <option value="english">English</option>
+                    <option value="assamese">Assamese</option>
+                    <option value="hindi">Hindi</option>
+                </select>
             </div>
             
             <div class="approval-table-scroll-wrapper manager-table-height">
@@ -897,7 +913,7 @@
                             <th class="text-left-align">Subject Info</th>
                             <th>Code</th>
                             <th>Sem</th>
-                            <th class="text-right-align">Management Actions</th>
+                            <th>Management Actions</th>
                         </tr>
                     </thead>
                     <tbody id="mgr-published-papers-tbody">
@@ -916,7 +932,7 @@
                             <th>Admin ID</th>
                             <th class="text-left-align">Email Location</th>
                             <th class="text-left-align">Specialization</th>
-                            <th class="text-right-align">Control Directives</th>
+                            <th >Control Directives</th>
                         </tr>
                     </thead>
                     <tbody id="mgr-active-admins-tbody">
@@ -934,7 +950,7 @@
 
 <div id="mgr-edit-paper-modal" class="mgr-modal-backdrop">
     <div class="mgr-modal-card">
-        <span class="mgr-modal-close-btn" onclick="document.getElementById('mgr-edit-paper-modal').style.display='none'"></span>
+        <span id="close-mgr-edit-modal" class="mgr-modal-close-btn"></span>
         <h3 class="mgr-modal-title">📝 Edit Published Paper Data</h3>
         
         <form id="mgr-edit-paper-form" class="mgr-modal-form">
@@ -958,11 +974,6 @@
             <div class="mgr-modal-field-group">
                 <label>Document Resource PDF Link</label>
                 <input type="url" id="mgr-edit-url" required>
-            </div>
-            
-            <div class="mgr-modal-field-group alert-group-spacing">
-                <label class="mgr-alert-label">⚠️ Confirm Manager Security Password</label>
-                <input type="password" id="mgr-edit-auth-pass" placeholder="Enter password to apply modifications" required class="mgr-alert-input">
             </div>
             
             <button type="submit" class="special submit-btn mgr-modal-commit-btn">Save and Commit Changes</button>
