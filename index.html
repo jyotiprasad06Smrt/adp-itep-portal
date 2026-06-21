@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,16 +108,16 @@
             <button id="submit-feedback-btn" class="special">FEEDBACK/QUERY</button>
         </div>
 
-        <div class="button-row hidden2" id="admin-sub-menu" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 20px;">
-            <button id="admin-login-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">LOGIN as ADMIN</button>
-            <button id="admin-register-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">REGISTER AS ADMIN</button>
-            <button id="cancel-admin-sub-btn" class="special" style="background-color: #dc3545; color: white;">← Back to Menu</button>
+        <div class="button-row hidden2" id="admin-sub-menu" >
+            <button id="admin-login-btn"  class="hati2">LOGIN as ADMIN</button>
+            <button id="admin-register-btn"  class="hati2">REGISTER AS ADMIN</button>
+            <button id="cancel-admin-sub-btn"  class="hati1">← Back to Menu</button>
         </div>
 
-        <div class="button-row hidden2" id="contribution-sub-menu" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 20px;">
-            <button id="contribute-common-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">Contribute a common paper</button>
-            <button id="contribute-btn" class="special" style="background-color: #f8fafc; color: #1e293b;">Contribute a Previous Year Paper</button>
-            <button id="cancel-contrib-sub-btn" class="special" style="background-color: #dc3545; color: white;">← Back to Menu</button>
+        <div class="button-row hidden2" id="contribution-sub-menu" >
+            <button id="contribute-common-btn"  class="hati2">Contribute a common paper</button>
+            <button id="contribute-btn"  class="hati2">Contribute a Previous Year Paper</button>
+            <button id="cancel-contrib-sub-btn"  class="hati1">← Back to Menu</button>
         </div>
     </div>
 </div>
@@ -134,7 +133,7 @@
             <form id="user-feedback-form" class="manager-form-layout">
                 <div class="input-group">
                     <label for="feedback-message" class="field-label">Describe your problem or feedback in detail:</label>
-                    <textarea id="feedback-message" rows="6" placeholder="Type your message here..." required style="width:100%; padding:12px; border-radius:8px; border:1px solid #cbd5e1; box-sizing:border-box; background-color:#f8fafc; font-family:sans-serif; resize:none;"></textarea>
+                    <textarea id="feedback-message" rows="6" placeholder="Type your message here..." required class="hati3"></textarea>
                 </div>
                 <button type="submit" class="special manager-submit-btn">Submit Statement</button>
             </form>
@@ -515,7 +514,7 @@
             <button id="nav-pending-common" class="special">See Pending Common Papers</button>
             <button id="nav-upload-paper" class="special">Publish a Paper</button>
             <button id="nav-upload-common" class="special">Publish a Common Paper</button>
-            <button id="nav-change-password">Change Password</button>
+            <button id="nav-change-password" class="special">Change Password</button>
         </div>
 
 
@@ -935,7 +934,7 @@
 
 <div id="mgr-edit-paper-modal" class="mgr-modal-backdrop">
     <div class="mgr-modal-card">
-        <span class="mgr-modal-close-btn" onclick="document.getElementById('mgr-edit-paper-modal').style.display='none'">&times;</span>
+        <span class="mgr-modal-close-btn" onclick="document.getElementById('mgr-edit-paper-modal').style.display='none'"></span>
         <h3 class="mgr-modal-title">📝 Edit Published Paper Data</h3>
         
         <form id="mgr-edit-paper-form" class="mgr-modal-form">
