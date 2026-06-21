@@ -7,7 +7,6 @@ let currentViewState = {
     dept: '',
     year: '2025-26' 
 };
-
 function safeBindClick(id, callback) {
     const el = document.getElementById(id);
     if (el) {
