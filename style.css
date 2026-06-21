@@ -44,7 +44,6 @@ td, th {
   text-align: center;
   vertical-align: middle;
 }
-
 .hati1{
   background-color: #f00b22;
   padding: 16px;
@@ -242,10 +241,9 @@ td, th {
 .left-panel { flex: 1.2; min-height: 400px; }
 .right-panel { flex: 1; max-width: 520px; }
 .approval-table-scroll-wrapper {
-  max-height: 450px;
-  overflow-x : auto;
+  max-height: 450px; 
   overflow-y: auto;
-  
+  overflow-x: auto;
   width: 100%;
   margin-top: 15px;
 }
@@ -427,6 +425,7 @@ td, th {
 .moderation-btn-group {
   display: flex;
   gap: 10px;
+  justify-content: center;
 }
 .moderation-btn-group .view-btn {
   padding: 6px 12px;
