@@ -7,12 +7,14 @@ let currentViewState = {
     dept: '',
     year: '2025-26' 
 };
+
 function safeBindClick(id, callback) {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('click', callback);
     }
 }
+
 function deactivateAllViews() {
     const screens = [
         { id: 'before-start', cls: 'hidden2' },
@@ -504,8 +506,8 @@ if (uploadForm) {
         formData.append('category', document.getElementById('paper-category').value);
         formData.append('subject', document.getElementById('paper-name').value);
         formData.append('code', document.getElementById('paper-code').value);
+        formData.append('adminUsername', window.currentActiveAdmin);
         formData.append('file', selectedFile);
-        formData.append('adminUsername', document.getElementById('admin-id').value.trim());
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-paper`, { method: 'POST', body: formData });
             const result = await response.json();
@@ -537,6 +539,8 @@ if (uploadCommonForm) {
         formData.append('subject', document.getElementById('admin-common-name').value);
         formData.append('code', document.getElementById('admin-common-code').value);
         formData.append('file', fileInput.files[0]);
+        formData.append('adminUsername', window.currentActiveAdmin);
+
         try {
             const response = await fetch(`${BACKEND_URL}/api/upload-paper`, { method: 'POST', body: formData });
             const result = await response.json();
@@ -897,7 +901,7 @@ window.processPaper = function(paperId, actionDirective) {
         body: JSON.stringify({ 
             id: paperId, 
             action: actionDirective,
-            adminUsername: document.getElementById('admin-id').value.trim()
+            adminUsername: window.currentActiveAdmin
         })
     })
     .then(res => res.json())
