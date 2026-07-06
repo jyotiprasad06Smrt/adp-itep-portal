@@ -1460,6 +1460,8 @@ window.mgrEraseAdmin = async function(username) {
         } else { alert("Operation error: " + data.message); }
     } catch { alert("Error connecting to database core configuration registers."); }
 };
+
+
 // ==========================================
 // 📱 ADVANCED MULTI-LEVEL BACK BUTTON ROUTER
 // ==========================================
