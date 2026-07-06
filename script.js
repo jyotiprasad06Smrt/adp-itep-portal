@@ -1460,3 +1460,38 @@ window.mgrEraseAdmin = async function(username) {
         } else { alert("Operation error: " + data.message); }
     } catch { alert("Error connecting to database core configuration registers."); }
 };
+// ==========================================
+// 📱 MOBILE BACK BUTTON INTERCEPTOR
+// ==========================================
+
+// 1. Push an initial "dummy" state into the browser history when the app loads
+window.history.pushState({ app_state: 'active' }, "", "");
+
+// 2. Whenever a user clicks ANY button in your app, push another dummy state.
+// This gives their phone's back button a "history" to go back to!
+document.body.addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+        window.history.pushState({ app_state: 'active' }, "", "");
+    }
+});
+
+// 3. Listen for the 'popstate' event (This fires when the physical Back button is pressed)
+window.addEventListener('popstate', function(event) {
+    // Prevent default exit behavior and hide all current screens
+    deactivateAllViews();
+    
+    // Route the user back to a safe "Home" location based on what they were doing
+    const mainWebsite = document.getElementById('main-website');
+    const loginInterface = document.getElementById('login-interface');
+
+    // If they were browsing papers, take them back to the Main Hub. 
+    // Otherwise, take them back to the Login Interface.
+    if (currentViewState.stream === 'bsc-bed' || currentViewState.stream === 'ba-bed' || currentViewState.stream === 'common') {
+        if (mainWebsite) mainWebsite.classList.remove('hidden3');
+    } else {
+        if (loginInterface) loginInterface.classList.remove('hidden2');
+    }
+
+    // Push state again so the NEXT back press doesn't instantly exit either
+    window.history.pushState({ app_state: 'active' }, "", "");
+});
