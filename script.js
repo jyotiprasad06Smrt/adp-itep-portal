@@ -1461,37 +1461,59 @@ window.mgrEraseAdmin = async function(username) {
     } catch { alert("Error connecting to database core configuration registers."); }
 };
 // ==========================================
-// 📱 MOBILE BACK BUTTON INTERCEPTOR
+// 📱 ADVANCED MULTI-LEVEL BACK BUTTON ROUTER
 // ==========================================
 
-// 1. Push an initial "dummy" state into the browser history when the app loads
-window.history.pushState({ app_state: 'active' }, "", "");
+// We give the router a map of every single screen in your app
+const APP_SCREENS = [
+    { id: 'before-start', cls: 'hidden2' }, { id: 'login-interface', cls: 'hidden2' },
+    { id: 'main-website', cls: 'hidden3' }, { id: 'ba-bed-page', cls: 'hidden4' },
+    { id: 'bsc-bed-page', cls: 'hidden5' }, { id: 'ba-bed-select-dept', cls: 'hidden6' },
+    { id: 'bsc-bed-select-dept', cls: 'hidden6' }, { id: 'ba-bed-minor', cls: 'hidden10' },
+    { id: 'bsc-bed-minor', cls: 'hidden10' }, { id: 'dynamic-papers-display-page', cls: 'hidden2' },
+    { id: 'admin-login', cls: 'hidden8' }, { id: 'upload-dashboard', cls: 'hidden9' },
+    { id: 'anonymous-contribute-page', cls: 'hidden2' }, { id: 'anonymous-contribute-common-page', cls: 'hidden2' },
+    { id: 'manager-login-page', cls: 'hidden2' }, { id: 'manager-dashboard-view', cls: 'hidden2' },
+    { id: 'feedback-submission-page', cls: 'hidden2' }
+];
 
-// 2. Whenever a user clicks ANY button in your app, push another dummy state.
-// This gives their phone's back button a "history" to go back to!
+// 1. Helper function: Looks at the screen to see which div is currently visible
+function getActiveScreen() {
+    for (let screen of APP_SCREENS) {
+        const el = document.getElementById(screen.id);
+        if (el && !el.classList.contains(screen.cls)) return screen;
+    }
+    return APP_SCREENS[0]; // Fallback to 'before-start'
+}
+
+// 2. Set the foundation state when the app first loads
+window.history.replaceState({ screenObj: APP_SCREENS[0] }, "", "");
+
+// 3. Listen to EVERY button click, wait 50ms for your logic to switch the screen, then save the NEW state
 document.body.addEventListener('click', function(e) {
     if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-        window.history.pushState({ app_state: 'active' }, "", "");
+        setTimeout(() => {
+            const active = getActiveScreen();
+            // Only push a new state to the phone's history if the screen actually changed!
+            if (!history.state || history.state.screenObj.id !== active.id) {
+                window.history.pushState({ screenObj: active }, "", "");
+            }
+        }, 50); 
     }
 });
 
-// 3. Listen for the 'popstate' event (This fires when the physical Back button is pressed)
+// 4. When the user hits the BACK button, restore the exact screen they were on previously
 window.addEventListener('popstate', function(event) {
-    // Prevent default exit behavior and hide all current screens
-    deactivateAllViews();
-    
-    // Route the user back to a safe "Home" location based on what they were doing
-    const mainWebsite = document.getElementById('main-website');
-    const loginInterface = document.getElementById('login-interface');
-
-    // If they were browsing papers, take them back to the Main Hub. 
-    // Otherwise, take them back to the Login Interface.
-    if (currentViewState.stream === 'bsc-bed' || currentViewState.stream === 'ba-bed' || currentViewState.stream === 'common') {
-        if (mainWebsite) mainWebsite.classList.remove('hidden3');
+    if (event.state && event.state.screenObj) {
+        deactivateAllViews(); // Hide everything currently on screen
+        const targetScreen = document.getElementById(event.state.screenObj.id);
+        if (targetScreen) {
+            targetScreen.classList.remove(event.state.screenObj.cls); // Show the saved previous screen
+        }
     } else {
-        if (loginInterface) loginInterface.classList.remove('hidden2');
+        // Emergency fallback: If they mash the back button too fast, lock them safely in the app
+        deactivateAllViews();
+        document.getElementById('before-start').classList.remove('hidden2');
+        window.history.pushState({ screenObj: APP_SCREENS[0] }, "", "");
     }
-
-    // Push state again so the NEXT back press doesn't instantly exit either
-    window.history.pushState({ app_state: 'active' }, "", "");
 });
