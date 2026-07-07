@@ -85,6 +85,9 @@ safeBindClick('eng-btn', function(){ currentViewState.dept = 'english'; openDyna
 safeBindClick('asm-btn', function(){ currentViewState.dept = 'assamese'; openDynamicRepositoryView("Major"); });
 safeBindClick('hin-btn', function(){ currentViewState.dept = 'hindi'; openDynamicRepositoryView("Major"); });
 
+safeBindClick('mgr-nav-google-forms-feedback', () => {
+    window.open('https://docs.google.com/forms/d/1MdO1s26pz3vn1KMmcBrmzUGSaOP66QErdysC2-wUw4Y/edit', '_blank');
+});
 
 safeBindClick('submit-feedback-btn', () => { deactivateAllViews(); document.getElementById('feedback-submission-page').classList.remove('hidden2'); });
 safeBindClick('bck-feedback', () => { deactivateAllViews(); document.getElementById('login-interface').classList.remove('hidden2'); });
