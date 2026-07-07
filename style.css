@@ -1182,6 +1182,10 @@ img[src="studyroom.png"] {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+
+.tab-purple { border: 2px solid #a855f7 !important; }
+.tab-purple:hover { background-color: #faf5ff !important; }
+
 .feedback-divider::before,
 .feedback-divider::after {
     content: '';
